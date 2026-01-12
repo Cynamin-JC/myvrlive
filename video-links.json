@@ -1,6 +1,7 @@
-{
-"name": "780racer",
-"url": "https://stream.vrcdn.live/live/780racer.live.mp4"
+[
+    {
+        "name": "780racer",
+        "url": "https://stream.vrcdn.live/live/780racer.live.mp4"
     },
     {
         "name": "Jakerzzz",
@@ -273,6 +274,5 @@
     {
         "name": ".Mask.",
         "url": "https://stream.vrcdn.live/live/mask9691.live.mp4"
-}
-]
+    }
 ]
