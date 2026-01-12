@@ -1,56 +1,126 @@
-function checkVideoInList(url) {
-    const item = document.querySelector('[data-url="' + url + '"]');
-    if (!item) return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Link Status Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .video-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .video-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #fff;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .video-item a {
+            text-decoration: none;
+            color: #4285f4;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #fff;
+        }
+        .status.online {
+            background-color: #34a853;
+        }
+        .status.offline {
+            background-color: #ea4335;
+        }
+        .status.checking {
+            background-color: #fbbc05;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Link Status Checker</h1>
+    <ul id="videoList" class="video-list"></ul>
 
-    const indicator = item.querySelector('.video-item-indicator');
-    const status = item.querySelector('.video-item-status');
-
-    // Set checking state
-    indicator.className = 'video-item-indicator checking';
-    status.textContent = 'Checking...';
-    status.className = 'video-item-status';
-
-    let resolved = false;
-    const PROXY_URL = 'https://corsproxy.io/?'; // CORS solution
-    const xhr = new XMLHttpRequest();
-    
-    xhr.timeout = 5000; // 5-second timeout
-    
-    xhr.onload = function() {
-        if (!resolved) {
-            resolved = true;
-            if (xhr.status >= 200 && xhr.status < 300) {
-                setOnline(indicator, status, 'Online');
-            } else {
-                setOffline(indicator, status, 'Offline');
+    <script>
+        async function fetchVideoLinks() {
+            try {
+                const response = await fetch('video-links.json');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching video links:', error);
+                return [];
             }
         }
-    };
-    
-    xhr.onerror = xhr.ontimeout = function() {
-        if (!resolved) {
-            resolved = true;
-            setOffline(indicator, status, 'Error or Timeout');
+
+        function createVideoItem(video) {
+            const listItem = document.createElement('li');
+            listItem.className = 'video-item';
+
+            const link = document.createElement('a');
+            link.href = video.url;
+            link.textContent = video.name;
+            link.target = '_blank';
+
+            const status = document.createElement('span');
+            status.className = 'status checking';
+            status.textContent = 'Checking...';
+
+            // Append items
+            listItem.appendChild(link);
+            listItem.appendChild(status);
+
+            // Check URL status
+            checkVideoStatus(video.url, status);
+
+            return listItem;
         }
-    };
-    
-    try {
-        xhr.open('HEAD', PROXY_URL + url, true);
-        xhr.send();
-    } catch (e) {
-        console.error('Exception during XHR:', e);
-        setOffline(indicator, status, 'Request error');
-    }
 
-    function setOnline(indicator, status, message) {
-        indicator.className = 'video-item-indicator online';
-        status.textContent = message;
-        status.className = 'video-item-status online';
-    }
+        function checkVideoStatus(url, statusElement) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('HEAD', url, true);
+            xhr.timeout = 5000; // Set timeout for response
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    statusElement.textContent = 'Online';
+                    statusElement.className = 'status online';
+                } else {
+                    statusElement.textContent = 'Offline';
+                    statusElement.className = 'status offline';
+                }
+            };
+            xhr.onerror = xhr.ontimeout = function () {
+                statusElement.textContent = 'Offline';
+                statusElement.className = 'status offline';
+            };
+            xhr.send();
+        }
 
-    function setOffline(indicator, status, message) {
-        indicator.className = 'video-item-indicator offline';
-        status.textContent = message;
-        status.className = 'video-item-status offline';
-    }
-}
+        async function loadVideoList() {
+            const videoListElement = document.getElementById('videoList');
+            videoListElement.innerHTML = ''; // Clear the list before loading
+            const videos = await fetchVideoLinks();
+            videos.forEach(video => {
+                const videoItem = createVideoItem(video);
+                videoListElement.appendChild(videoItem);
+            });
+        }
+
+        // Load video list on page load
+        loadVideoList();
+    </script>
+</body>
+</html>
