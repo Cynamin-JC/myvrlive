@@ -115,53 +115,46 @@
                 return await response.json();
             } catch (error) {
                 console.error('Error fetching video links:', error);
-                return {};
+                return [];
             }
         }
 
         async function populateTable() {
             const tableBody = document.getElementById('videoTableBody');
-            const videoLinksData = await fetchVideoLinks();
+            const videoLinks = await fetchVideoLinks();
 
             // Clear existing rows
             tableBody.innerHTML = '';
 
-            // Convert object structure to array for processing
-            Object.entries(videoLinksData).forEach(([name, data]) => {
-                const urls = data.url;
-                
-                // Create a row for each URL
-                urls.forEach((url, index) => {
-                    // Create Table Row
-                    const row = document.createElement('tr');
+            videoLinks.forEach(video => {
+                // Create Table Row
+                const row = document.createElement('tr');
 
-                    // Create Name Cell
-                    const nameCell = document.createElement('td');
-                    // If multiple URLs, append URL index to name for clarity
-                    nameCell.textContent = urls.length > 1 ? `${name} (${index + 1})` : name;
-                    row.appendChild(nameCell);
+                // Create Name Cell
+                const nameCell = document.createElement('td');
+                nameCell.textContent = video.name;
+                row.appendChild(nameCell);
 
-                    // Create Link Cell
-                    const linkCell = document.createElement('td');
-                    const linkAnchor = document.createElement('a');
-                    linkAnchor.href = url;
-                    linkAnchor.textContent = url;
-                    linkAnchor.target = '_blank'; // Open link in a new tab
-                    linkCell.appendChild(linkAnchor);
-                    row.appendChild(linkCell);
+                // Create Link Cell
+                const linkCell = document.createElement('td');
+                const linkAnchor = document.createElement('a');
+                linkAnchor.href = video.url;
+                linkAnchor.textContent = video.url;
+                linkAnchor.target = '_blank'; // Open link in a new tab
+                linkCell.appendChild(linkAnchor);
+                row.appendChild(linkCell);
 
-                    // Create Status Cell
-                    const statusCell = document.createElement('td');
-                    statusCell.className = 'status checking'; // Default status as "checking"
-                    statusCell.textContent = 'Checking...';
-                    row.appendChild(statusCell);
+                // Create Status Cell
+                const statusCell = document.createElement('td');
+                statusCell.className = 'status checking'; // Default status as "checking"
+                statusCell.textContent = 'Checking...';
+                row.appendChild(statusCell);
 
-                    // Add Row to Table
-                    tableBody.appendChild(row);
+                // Add Row to Table
+                tableBody.appendChild(row);
 
-                    // Check Video Status Dynamically
-                    checkVideoStatus(url, statusCell);
-                });
+                // Check Video Status Dynamically
+                checkVideoStatus(video.url, statusCell);
             });
         }
 
