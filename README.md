@@ -1,54 +1,74 @@
 # Video Link Indicator
 
-A Google-style web application that checks if video links (MP4 files) are live and accessible.
+A Google-style web application that displays a list of video links with live online/offline indicators. Fully compatible with Google Sites.
 
 ## Features
 
 - 🎨 Clean Google-inspired design
-- 🔴/🟢 Live indicator showing video availability status
-- ✅ URL validation for MP4 links
-- 📹 Video preview when link is accessible
-- ⚡ Real-time link checking
+- 📋 **Video link list** with status indicators for each link
+- 🔴/🟢 **Live indicators** next to each link (online/offline)
+- ➕ **Add links** via input field
+- 🗑️ **Delete links** from the list
+- 🔃 **Manual refresh** for individual links
+- ⚡ **Auto-refresh** - rechecks all links every 30 seconds
+- 📹 **Video preview** - click any link to play the video
+- 🌐 **Google Sites compatible** - single HTML file with inline CSS/JS
 - 🔒 Secure URL validation (only http/https protocols)
 
 ## How to Use
 
+### For Regular Web Hosting:
 1. Open `index.html` in a web browser
-2. Enter a video URL that points to an `.mp4` file
-3. Click "Check Link" or press Enter
-4. The indicator will show:
-   - 🔵 **Blue (Checking)**: Currently checking the link
-   - 🟢 **Green (Live)**: Video link is accessible and live
-   - 🔴 **Red (Offline)**: Video link is not accessible or invalid
+2. The premade link (cynamin.live.mp4) will automatically be checked
+3. Add more links by entering URLs in the input field and clicking "Add Link"
+4. Watch the indicators update automatically
+
+### For Google Sites:
+1. Copy the entire contents of `index.html`
+2. In Google Sites, add an "Embed" element
+3. Paste the HTML code
+4. The application will work directly in your Google Site
+
+## Status Indicators
+
+- 🔵 **Blue (Checking)**: Currently checking the link status
+- 🟢 **Green (Online)**: Video link is accessible and live
+- 🔴 **Red (Offline)**: Video link is not accessible
 
 ## Example
 
-The application has been tested and verified to work with live streaming links such as:
+The application comes with a premade link:
 ```
 https://stream.vrcdn.live/live/cynamin.live.mp4
 ```
 
-This link has been verified to work online. When you enter it in a browser with internet access, the indicator will show green if the stream is live.
+You can add more similar links using the input field.
 
 ## Technical Details
 
-The application uses JavaScript's Video API to check if a video URL is accessible by attempting to load its metadata. If the video loads successfully, it displays a green "live" indicator. If it fails or times out (10 seconds), it shows a red "offline" indicator.
+- **Video Detection**: Uses JavaScript's Video API to check if a video URL is accessible by attempting to load its metadata
+- **Auto-Refresh**: Automatically rechecks all links every 30 seconds to keep status current
+- **Timeout**: 10-second timeout per check to prevent hanging
+- **CORS Support**: Includes crossOrigin attribute for cross-domain video checking
+- **Memory Safe**: Properly cleans up video elements to prevent memory leaks
 
-### Security Features
-- Only accepts http:// and https:// protocols
-- Validates URL format using native URL parsing
-- Properly handles query parameters and URL fragments
-- Memory-safe video element cleanup
-
-## Files
-
-- `index.html` - Main HTML page
-- `style.css` - Styling with Google-inspired design
-- `script.js` - JavaScript functionality for link checking
+### Google Sites Compatibility
+- All CSS and JavaScript are inline (no external files needed)
+- No localStorage or external dependencies
+- Works in restricted iframe environments
+- ES5-compatible JavaScript for broad browser support
 
 ## Browser Compatibility
 
 Works with all modern browsers that support:
 - HTML5 Video API
-- ES6 JavaScript features
+- JavaScript ES5+
 - CSS3
+
+## Files
+
+- `index.html` - Complete standalone application (use this for Google Sites)
+- `style.css` - Separate CSS file (optional, not needed if using inline version)
+- `script.js` - Separate JS file (optional, not needed if using inline version)
+
+**Note**: For Google Sites, only `index.html` is needed as it contains everything inline.
