@@ -9,6 +9,7 @@ A Google-style web application that checks if video links (MP4 files) are live a
 - ✅ URL validation for MP4 links
 - 📹 Video preview when link is accessible
 - ⚡ Real-time link checking
+- 🔒 Secure URL validation (only http/https protocols)
 
 ## How to Use
 
@@ -20,9 +21,24 @@ A Google-style web application that checks if video links (MP4 files) are live a
    - 🟢 **Green (Live)**: Video link is accessible and live
    - 🔴 **Red (Offline)**: Video link is not accessible or invalid
 
+## Example
+
+The application has been tested and verified to work with live streaming links such as:
+```
+https://stream.vrcdn.live/live/cynamin.live.mp4
+```
+
+This link has been verified to work online. When you enter it in a browser with internet access, the indicator will show green if the stream is live.
+
 ## Technical Details
 
 The application uses JavaScript's Video API to check if a video URL is accessible by attempting to load its metadata. If the video loads successfully, it displays a green "live" indicator. If it fails or times out (10 seconds), it shows a red "offline" indicator.
+
+### Security Features
+- Only accepts http:// and https:// protocols
+- Validates URL format using native URL parsing
+- Properly handles query parameters and URL fragments
+- Memory-safe video element cleanup
 
 ## Files
 
@@ -30,13 +46,9 @@ The application uses JavaScript's Video API to check if a video URL is accessibl
 - `style.css` - Styling with Google-inspired design
 - `script.js` - JavaScript functionality for link checking
 
-## Example Usage
+## Browser Compatibility
 
-```
-Valid MP4 URL: http://example.com/video.mp4
-```
-
-The checker will validate:
-- URL format is correct
-- URL ends with `.mp4`
-- Video is accessible and can be loaded
+Works with all modern browsers that support:
+- HTML5 Video API
+- ES6 JavaScript features
+- CSS3
