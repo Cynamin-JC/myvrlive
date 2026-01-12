@@ -40,11 +40,11 @@
         "url": "https://stream.vrcdn.live/live/basicbit.live.mp4"
     },
     {
-        "name": "Bazza",
+        "name": "Bazza (VRCDN)",
         "url": "https://stream.vrcdn.live/live/bazza.live.mp4"
     },
     {
-        "name": "Bazza Twitch",
+        "name": "Bazza (Twitch)",
         "url": "https://www.twitch.tv/bazzavr"
     },
     {
@@ -76,7 +76,7 @@
         "url": "https://stream.vrcdn.live/live/lolalopvr.live.mp4"
     },
     {
-        "name": "BaptizmVR (Alternate)",
+        "name": "BaptizmVR",
         "url": "https://stream.vrcdn.live/live/baptizmvr.live.mp4"
     },
     {
@@ -84,7 +84,7 @@
         "url": "https://stream.vrcdn.live/live/bert60hz.live.mp4"
     },
     {
-        "name": "BrotherDurry",
+        "name": "Brother Durry",
         "url": "https://stream.vrcdn.live/live/brotherdurry.live.mp4"
     },
     {
@@ -96,7 +96,7 @@
         "url": "https://stream.vrcdn.live/live/bunnycore.live.mp4"
     },
     {
-        "name": "Bunny_Lugosi Twitch",
+        "name": "Bunny Lugosi (Twitch)",
         "url": "https://www.twitch.tv/bunny_lugosi"
     },
     {
@@ -108,35 +108,119 @@
         "url": "https://stream.vrcdn.live/live/casperillion.live.mp4"
     },
     {
-        "name": "Catmelt",
+        "name": "Catm3lt",
         "url": "https://stream.vrcdn.live/live/catm3lt.live.mp4"
     },
     {
-        "name": "Cereal15",
-        "url": "https://stream.vrcdn.live/live/cereal15.live.mp4"
+        "name": "K3n",
+        "url": "https://stream.vrcdn.live/live/k3n.live.mp4"
     },
     {
-        "name": "Cheebzy",
-        "url": "https://stream.vrcdn.live/live/cheebzz.live.mp4"
+        "name": "Kenotatsu",
+        "url": "https://stream.vrcdn.live/live/kenotatsu.live.mp4"
     },
     {
-        "name": "Chelsea",
-        "url": "https://stream.vrcdn.live/live/chelsea.live.mp4"
+        "name": "Kibah",
+        "url": "https://stream.vrcdn.live/live/kibahofficial.live.mp4"
     },
     {
-        "name": "Chelzchan",
-        "url": "https://stream.vrcdn.live/live/chelz.live.mp4"
+        "name": "Kizzle",
+        "url": "https://stream.vrcdn.live/live/kizzle.live.mp4"
     },
     {
-        "name": "CitrusZest",
-        "url": "https://stream.vrcdn.live/live/citruszest.live.mp4"
+        "name": "Klemo808",
+        "url": "https://stream.vrcdn.live/live/klemo808.live.mp4"
     },
     {
-        "name": "Clara",
-        "url": "https://stream.vrcdn.live/live/clara.live.mp4"
+        "name": "Kohadachan",
+        "url": "https://stream.vrcdn.live/live/kohadachan.live.mp4"
     },
     {
-        "name": "DJZerophl Twitch",
-        "url": "https://www.twitch.tv/djzerophl"
+        "name": "KrimsonSkies (Twitch)",
+        "url": "https://www.twitch.tv/krimsonskiesdj"
+    },
+    {
+        "name": "Kupobeat",
+        "url": "https://stream.vrcdn.live/live/kupobeat.live.mp4"
+    },
+    {
+        "name": "May",
+        "url": "https://stream.vrcdn.live/live/may.live.mp4"
+    },
+    {
+        "name": "Microesoft",
+        "url": "https://stream.vrcdn.live/live/microesoft.live.mp4"
+    },
+    {
+        "name": "Monkeynbananas",
+        "url": "https://stream.vrcdn.live/live/monkeynbananas.live.mp4"
+    },
+    {
+        "name": "Nekotan",
+        "url": "https://stream.vrcdn.live/live/nekotan.live.mp4"
+    },
+    {
+        "name": "Nephtanica (Twitch)",
+        "url": "https://www.twitch.tv/nephtanica"
+    },
+    {
+        "name": "Nessie",
+        "url": "https://stream.vrcdn.live/live/nessie.live.mp4"
+    },
+    {
+        "name": "Nova",
+        "url": "https://stream.vrcdn.live/live/novavr.live.mp4"
+    },
+    {
+        "name": "Novadubz",
+        "url": "https://stream.vrcdn.live/live/novadubz.live.mp4"
+    },
+    {
+        "name": "Phantex (Twitch)",
+        "url": "https://www.twitch.tv/phanosity"
+    },
+    {
+        "name": "Ramychan",
+        "url": "https://stream.vrcdn.live/live/ramychan.live.mp4"
+    },
+    {
+        "name": "Refuge (Twitch)",
+        "url": "https://www.twitch.tv/refugevr"
+    },
+    {
+        "name": "RegenStorm",
+        "url": "https://stream.vrcdn.live/live/regen2moon.live.mp4"
+    },
+    {
+        "name": "ScarlettSilver",
+        "url": "https://stream.vrcdn.live/live/scarlettsilver.live.mp4"
+    },
+    {
+        "name": "Senor_Qweeph",
+        "url": "https://stream.vrcdn.live/live/projectschism.live.mp4"
+    },
+    {
+        "name": "Sleepyneko",
+        "url": "https://stream.vrcdn.live/live/sleepyneko.live.mp4"
+    },
+    {
+        "name": "VRMasked",
+        "url": "https://stream.vrcdn.live/live/mask9691.live.mp4"
+    },
+    {
+        "name": "Waistless",
+        "url": "https://stream.vrcdn.live/live/waistless.live.mp4"
+    },
+    {
+        "name": "Zoey",
+        "url": "https://stream.vrcdn.live/live/zoey.live.mp4"
+    },
+    {
+        "name": "Zoommair (Twitch)",
+        "url": "https://www.twitch.tv/zoommair"
+    },
+    {
+        "name": "780racer",
+        "url": "https://stream.vrcdn.live/live/780racer.live.mp4"
     }
 ]
