@@ -17,12 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
         'https://stream.vrcdn.live/live/cynamin.live.mp4'
     ];
 
-    // Load saved links from localStorage
-    const savedLinks = localStorage.getItem('videoLinks');
-    if (savedLinks) {
-        videoLinks = JSON.parse(savedLinks);
-    }
-
     // Initialize the video list
     initializeVideoList();
     
@@ -78,7 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add to list
         videoLinks.push(url);
-        saveLinksToStorage();
         showIndicator('checking', 'Added to list, checking status...');
         
         // Create list item and check status
@@ -175,10 +168,6 @@ document.addEventListener('DOMContentLoaded', function() {
         videoLinks.forEach(url => {
             checkVideoInList(url);
         });
-    }
-
-    function saveLinksToStorage() {
-        localStorage.setItem('videoLinks', JSON.stringify(videoLinks));
     }
 
     function cleanupVideo(videoElement) {
