@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoPreview = document.getElementById('videoPreview');
     const videoPlayer = document.getElementById('videoPlayer');
 
+    // Configuration constants
+    const CHECK_TIMEOUT_MS = 10000;
+    const SUPPORTED_FORMATS = ['.mp4'];
+
     // Check link when button is clicked
     checkBtn.addEventListener('click', function() {
         const url = videoUrlInput.value.trim();
@@ -37,8 +41,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Check if URL ends with .mp4
-        if (!url.toLowerCase().endsWith('.mp4')) {
+        // Check if URL ends with supported format
+        const hasValidFormat = SUPPORTED_FORMATS.some(format => 
+            url.toLowerCase().endsWith(format)
+        );
+        if (!hasValidFormat) {
             showIndicator('offline', 'URL must point to an .mp4 file');
             return;
         }
@@ -53,26 +60,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const timeout = setTimeout(() => {
             if (!loaded && !errored) {
                 showIndicator('offline', 'Link is not responding or offline');
-                testVideo.src = '';
+                cleanupVideo(testVideo);
             }
-        }, 10000); // 10 second timeout
+        }, CHECK_TIMEOUT_MS);
 
         testVideo.addEventListener('loadedmetadata', function() {
             loaded = true;
             clearTimeout(timeout);
             showIndicator('live', 'Video link is live!');
             loadVideoPreview(url);
+            cleanupVideo(testVideo);
         });
 
         testVideo.addEventListener('error', function() {
             errored = true;
             clearTimeout(timeout);
             showIndicator('offline', 'Video link is not accessible or offline');
+            cleanupVideo(testVideo);
         });
 
         // Start loading the video
         testVideo.src = url;
         testVideo.load();
+    }
+
+    function cleanupVideo(videoElement) {
+        // Clean up video element to prevent memory leaks
+        videoElement.src = '';
+        videoElement.load();
+        videoElement.remove();
     }
 
     function showIndicator(status, message) {
