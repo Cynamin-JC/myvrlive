@@ -154,7 +154,7 @@
         }
 
         #onlineUsers h3 {
-            margin: 0 0 10px 0;
+            margin: 0 0 10px;
             font-size: 16px;
             text-align: center;
             border-bottom: 1px solid #666;
@@ -202,27 +202,26 @@
     </div>
 
     <script>
-        // Global video links array to improve refresh rate
-        let videoLinks = [];
+        let videoLinks = []; // This will store video links from video-links.json
 
+        // Fetch video links from JSON file
         async function fetchVideoLinks() {
             try {
                 const response = await fetch('video-links.json');
                 videoLinks = await response.json();
-                return videoLinks;
             } catch (error) {
-                console.error('Error fetching video links:', error);
-                return [];
+                console.error('Error fetching video-links.json:', error);
+                videoLinks = [];
             }
         }
 
+        // Populate Table with Video Links
         async function populateTable() {
-            if (videoLinks.length === 0) await fetchVideoLinks(); // Fetch links if not already loaded
-
+            if (videoLinks.length === 0) await fetchVideoLinks();
             const tableBody = document.getElementById('videoTableBody');
-            tableBody.innerHTML = ''; // Clear existing rows
+            tableBody.innerHTML = '';
 
-            videoLinks.forEach(video => {
+            videoLinks.forEach((video) => {
                 const row = document.createElement('tr');
 
                 const nameCell = document.createElement('td');
@@ -246,62 +245,65 @@
 
                 checkVideoStatus(video.url, statusCell);
             });
+
+            updateOnlineList();
         }
 
+        // Check Video Status
         async function checkVideoStatus(url, statusCell) {
             try {
                 if (url.includes('twitch.tv')) {
                     const username = url.split('twitch.tv/')[1];
                     const isLive = await checkTwitchStatus(username);
-                    updateStatusAndOnlineList(isLive, statusCell);
+                    updateStatusCell(isLive, statusCell);
                 } else if (url.includes('kick.com')) {
                     const username = url.split('kick.com/')[1];
                     const isLive = await checkKickStatus(username);
-                    updateStatusAndOnlineList(isLive, statusCell);
+                    updateStatusCell(isLive, statusCell);
                 } else {
                     checkVideoLink(url, statusCell);
                 }
-            } catch (error) {
-                console.error(`Error checking status for ${url}:`, error);
-                updateStatusAndOnlineList(false, statusCell);
+            } catch {
+                updateStatusCell(false, statusCell);
             }
-        }
 
-        async function updateStatusAndOnlineList(isOnline, statusCell) {
-            updateStatusCell(isOnline, statusCell);
             updateOnlineList();
         }
 
-        function updateStatusCell(isOnline, statusCell) {
-            statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
-            statusCell.textContent = isOnline ? 'Online' : 'Offline';
-        }
-
+        // Update the Floating Online List
         function updateOnlineList() {
             const onlineList = document.getElementById('onlineList');
-            onlineList.innerHTML = ''; // Clear the existing list
+            onlineList.innerHTML = '';
 
             const onlineRows = document.querySelectorAll('.status.online');
-            onlineRows.forEach((statusCell) => {
-                const row = statusCell.parentNode; // Get the parent <tr>
-                const name = row.querySelector('td:first-child').textContent;
-                const listItem = document.createElement('li');
-                listItem.textContent = name;
-                onlineList.appendChild(listItem);
-            });
-
-            if (onlineList.innerHTML === '') {
+            if (onlineRows.length === 0) {
                 const emptyMsg = document.createElement('li');
                 emptyMsg.textContent = 'Nobody is online';
                 onlineList.appendChild(emptyMsg);
+                return;
             }
+
+            onlineRows.forEach((statusCell) => {
+                const row = statusCell.parentNode;
+                const name = row.querySelector('td:first-child').textContent;
+                const url = row.querySelector('a').href;
+
+                const listItem = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = url;
+                link.textContent = name;
+                link.target = '_blank';
+                listItem.appendChild(link);
+                onlineList.appendChild(listItem);
+            });
         }
 
+        // Functions for Twitch/Kick and Other Video Links
         async function checkTwitchStatus(username) {
             try {
                 const response = await fetch(`https://www.twitch.tv/${username}`);
                 const html = await response.text();
-                return html.includes(`"isLiveBroadcast":true`);
+                return html.includes('"isLiveBroadcast":true');
             } catch {
                 return false;
             }
@@ -319,19 +321,28 @@
 
         function checkVideoLink(url, statusCell) {
             const video = document.createElement('video');
-            video.onloadeddata = () => updateStatusAndOnlineList(true, statusCell);
-            video.onerror = () => updateStatusAndOnlineList(false, statusCell);
+            video.onloadeddata = () => updateStatusCell(true, statusCell);
+            video.onerror = () => updateStatusCell(false, statusCell);
             video.src = url;
         }
 
+        function updateStatusCell(isOnline, statusCell) {
+            statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
+            statusCell.textContent = isOnline ? 'Online' : 'Offline';
+        }
+
+        // Add Light/Dark Mode Logic
         const modeButton = document.getElementById('modeButton');
         modeButton.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             modeButton.textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
         });
 
-        document.getElementById('refreshButton').addEventListener('click', populateTable);
+        // Add Refresh Button Logic
+        const refreshButton = document.getElementById('refreshButton');
+        refreshButton.addEventListener('click', populateTable);
 
+        // Populate the Table on Page Load
         populateTable();
     </script>
 </body>
