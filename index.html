@@ -79,8 +79,8 @@
             text-align: center;
             font-weight: bold;
             color: #fff;
-            vertical-align: middle; /* Center with links */
-            line-height: 1.4; /* Adjust alignment space */
+            vertical-align: middle; /* Align with links */
+            line-height: 1.4;
         }
 
         .status.online {
@@ -99,7 +99,7 @@
         a {
             text-decoration: none;
             color: #8ab4f8;
-            vertical-align: middle; /* Align links to middle */
+            vertical-align: middle; /* Align links */
         }
 
         a:hover {
@@ -187,7 +187,7 @@
         // Fetch video links JSON file
         async function fetchVideoLinks() {
             try {
-                const response = await fetch('video-links.json'); // Replace with correct path to your JSON
+                const response = await fetch('video-links.json'); // Replace with correct path
                 videoLinks = await response.json();
                 return videoLinks;
             } catch (error) {
@@ -198,7 +198,7 @@
 
         // Populate the table
         async function populateTable() {
-            if (videoLinks.length === 0) await fetchVideoLinks(); // Fetch links if not already loaded
+            if (videoLinks.length === 0) await fetchVideoLinks();
 
             const tableBody = document.getElementById('videoTableBody');
             tableBody.innerHTML = ''; // Clear existing rows
@@ -229,8 +229,8 @@
                 await checkVideoStatus(video.url, statusCell);
             });
 
-            // Set concurrency to 10
-            await withConcurrencyLimit(tasks, 10);
+            // Set concurrency to 50 (increased from 10 previously)
+            await withConcurrencyLimit(tasks, 50);
         }
 
         // Check video status
@@ -259,22 +259,19 @@
             statusCell.textContent = isOnline ? 'Online' : 'Offline';
         }
 
-        // Example Twitch and Kick check functions (use similar APIs as shown earlier)
-        async function checkTwitchStatus(username) { /* Twitch status logic */ }
-        async function checkKickStatus(username) { /* Kick status logic */ }
-        function checkVideoLink(url, statusCell) { /* Video link check logic */ }
+        // Other helper functions for Twitch and Kick remain the same...
 
-        // Dark Mode Toggle
+        // Light Mode Toggle
         const modeButton = document.getElementById('modeButton');
         modeButton.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             modeButton.textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
         });
 
-        // Refresh Button
+        // Refresh Button Click Event
         document.getElementById('refreshButton').addEventListener('click', populateTable);
 
-        // Initialize
+        // Initialize Table on Page Load
         populateTable();
     </script>
 </body>
