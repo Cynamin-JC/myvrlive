@@ -1,229 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stylish Video Links Table</title>
-    <style>
-        /* General Page Styles */
-        body {
-            font-family: 'Arial', sans-serif;
-            background: #f3f4f6;
-            color: #333;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Video Links</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-        h1 {
-            text-align: center;
-            color: #222;
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
+    header {
+      background: #3a3b3c;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      width: 100%;
+    }
 
-        /* Table Styling */
-        table {
-            width: 90%;
-            margin: 0 auto;
-            border-collapse: collapse;
-            overflow: hidden;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
+    .container {
+      margin: 20px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 600px;
+    }
 
-        thead tr {
-            background-color: #4285f4;
-            color: #fff;
-        }
+    form input[type="url"] {
+      width: calc(100% - 120px);
+      padding: 8px;
+      margin-right: 10px;
+    }
 
-        th, td {
-            padding: 15px;
-            text-align: left;
-        }
+    form button {
+      padding: 8px 16px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
 
-        th {
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 14px;
-        }
+    form button:hover {
+      background-color: #0056b3;
+    }
 
-        tbody tr:nth-child(even) {
-            background: #f9f9f9;
-        }
+    .video-list {
+      margin-top: 20px;
+    }
 
-        tbody tr:hover {
-            background: #eef;
-            cursor: pointer;
-        }
+    .video-list a {
+      display: block;
+      margin: 5px 0;
+      color: #007BFF;
+      text-decoration: none;
+    }
 
-        td {
-            font-size: 14px;
-        }
-
-        /* Status Chips */
-        .status {
-            display: inline-block;
-            padding: 5px 10px;
-            font-size: 12px;
-            border-radius: 20px;
-            text-align: center;
-            font-weight: bold;
-            color: #fff;
-        }
-        .status.online {
-            background-color: #34a853;
-        }
-        .status.offline {
-            background-color: #ea4335;
-        }
-        .status.checking {
-            background-color: #fbbc05;
-        }
-
-        /* Link Styling */
-        a {
-            text-decoration: none;
-            color: #4285f4;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    .video-list a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-    <h1>Stylish Video Links & Stream Status</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Video Link</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody id="videoTableBody">
-            <!-- Table rows will be dynamically added here -->
-        </tbody>
-    </table>
+  <header>
+    <h1>Customizable Video Links</h1>
+  </header>
+  <div class="container">
+    <form id="videoForm">
+      <input type="url" id="videoLink" placeholder="Enter video link (e.g., https://youtu.be/...)" required>
+      <button type="submit">Add Video</button>
+    </form>
+    <div class="video-list" id="videoList">
+      <h3>Your Video Links:</h3>
+    </div>
+  </div>
 
-    <script>
-        // Fetch the video links JSON file
-        async function fetchVideoLinks() {
-            try {
-                const response = await fetch('video-links.json'); // Replace with correct path to your JSON
-                return await response.json();
-            } catch (error) {
-                console.error('Error fetching video links:', error);
-                return [];
-            }
-        }
+  <script>
+    document.getElementById("videoForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      
+      const videoList = document.getElementById("videoList");
+      const videoLinkInput = document.getElementById("videoLink");
+      const videoUrl = videoLinkInput.value;
 
-        async function populateTable() {
-            const tableBody = document.getElementById('videoTableBody');
-            const videoLinks = await fetchVideoLinks();
+      // Create a new LINK element and add to the list
+      const videoLinkElement = document.createElement("a");
+      videoLinkElement.href = videoUrl;
+      videoLinkElement.textContent = videoUrl;
+      videoLinkElement.target = "_blank";
 
-            // Clear existing rows
-            tableBody.innerHTML = '';
+      const listItem = document.createElement("div");
+      listItem.appendChild(videoLinkElement);
 
-            videoLinks.forEach(video => {
-                // Create Table Row
-                const row = document.createElement('tr');
+      videoList.appendChild(listItem);
 
-                // Create Name Cell
-                const nameCell = document.createElement('td');
-                nameCell.textContent = video.name;
-                row.appendChild(nameCell);
-
-                // Create Link Cell
-                const linkCell = document.createElement('td');
-                const linkAnchor = document.createElement('a');
-                linkAnchor.href = video.url;
-                linkAnchor.textContent = video.url;
-                linkAnchor.target = '_blank'; // Open link in a new tab
-                linkCell.appendChild(linkAnchor);
-                row.appendChild(linkCell);
-
-                // Create Status Cell
-                const statusCell = document.createElement('td');
-                statusCell.className = 'status checking'; // Default status as "checking"
-                statusCell.textContent = 'Checking...';
-                row.appendChild(statusCell);
-
-                // Add Row to Table
-                tableBody.appendChild(row);
-
-                // Check Video Status Dynamically
-                checkVideoStatus(video.url, statusCell);
-            });
-        }
-
-        // Check the status of a video or stream
-        async function checkVideoStatus(url, statusCell) {
-            try {
-                if (url.includes('twitch.tv')) {
-                    // Twitch status check
-                    const username = url.split('twitch.tv/')[1];
-                    const isLive = await checkTwitchStatus(username);
-                    updateStatusCell(isLive, statusCell);
-                } else if (url.includes('kick.com')) {
-                    // Kick status check
-                    const username = url.split('kick.com/')[1];
-                    const isLive = await checkKickStatus(username);
-                    updateStatusCell(isLive, statusCell);
-                } else {
-                    // Default link (video) check
-                    checkVideoLink(url, statusCell);
-                }
-            } catch (error) {
-                console.error(`Error checking status for ${url}:`, error);
-                updateStatusCell(false, statusCell); // Default to offline if an error occurs
-            }
-        }
-
-        // Twitch Status Check (No Auth Required)
-        async function checkTwitchStatus(username) {
-            try {
-                const response = await fetch(`https://www.twitch.tv/${username}`);
-                const html = await response.text();
-                return html.includes(`"isLiveBroadcast":true`); // Check if the user is live
-            } catch (error) {
-                console.error(`Error checking Twitch stream for ${username}:`, error);
-                return false;
-            }
-        }
-
-        // Kick Status Check
-        async function checkKickStatus(username) {
-            try {
-                const response = await fetch(`https://kick.com/api/v2/channels/${username}`);
-                const data = await response.json();
-                return data.livestream && data.livestream.is_live;
-            } catch (error) {
-                console.error(`Error checking Kick stream for ${username}:`, error);
-                return false;
-            }
-        }
-
-        // Check video availability using the <video> element
-        function checkVideoLink(url, statusCell) {
-            const video = document.createElement('video');
-            video.preload = 'metadata';
-
-            video.onloadeddata = () => updateStatusCell(true, statusCell);
-            video.onerror = () => updateStatusCell(false, statusCell);
-
-            video.src = url; // Set the video source to check availability
-        }
-
-        // Update the Status Cell
-        function updateStatusCell(isOnline, statusCell) {
-            statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
-            statusCell.textContent = isOnline ? 'Online' : 'Offline';
-        }
-
-        // Initialize the table on page load
-        populateTable();
-    </script>
+      // Reset the form
+      videoLinkInput.value = "";
+    });
+  </script>
 </body>
 </html>
