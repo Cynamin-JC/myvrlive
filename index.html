@@ -53,7 +53,7 @@
         }
 
         tbody tr:nth-child(even) {
-            background: #333333;
+            background: #333;
         }
 
         tbody tr:hover {
@@ -189,14 +189,13 @@
     <script>
         let videoLinks = []; // Global variable for links
 
-        // Fetch video links from JSON or endpoint
+        // Fetch video links from JSON file or endpoint
         async function fetchVideoLinks() {
             try {
                 const response = await fetch('video-links.json');
                 videoLinks = await response.json();
             } catch (error) {
-                console.error("Failed to fetch video-links.json:", error);
-                videoLinks = [];
+                console.error("Failed to fetch video links:", error);
             }
         }
 
@@ -205,11 +204,11 @@
             if (videoLinks.length === 0) await fetchVideoLinks();
 
             const tableBody = document.getElementById("videoTableBody");
-            tableBody.innerHTML = ''; // Clear existing rows
+            tableBody.innerHTML = ''; // Clear table before populating
 
             videoLinks.forEach((video, index) => {
                 const row = document.createElement("tr");
-                row.id = `video-row-${index}`; // Unique ID for each row
+                row.id = `video-row-${index}`; // Give each row a unique ID
 
                 const nameCell = document.createElement("td");
                 nameCell.textContent = video.name;
@@ -218,8 +217,8 @@
                 const linkCell = document.createElement("td");
                 const linkAnchor = document.createElement("a");
                 linkAnchor.href = video.url;
-                linkAnchor.textContent = video.url;
                 linkAnchor.target = "_blank";
+                linkAnchor.textContent = video.url;
                 linkCell.appendChild(linkAnchor);
                 row.appendChild(linkCell);
 
@@ -230,32 +229,36 @@
 
                 tableBody.appendChild(row);
 
+                // Start checking video status
                 checkVideoStatus(video.url, statusCell, row.id);
             });
         }
 
-        // Simulated video status checks
+        // Check video status (simulate online/offline for now)
         async function checkVideoStatus(url, statusCell, rowId) {
             try {
-                // Simulate random online/offline for demonstration (replace w/ real logic)
-                const isOnline = Math.random() >= 0.5;
+                // Simulate status check (replace with real API calls if necessary)
+                const isOnline = Math.random() > 0.5; // 50% random online/offline
                 updateStatusCell(isOnline, statusCell, rowId);
             } catch (error) {
-                console.error(`Error checking video status: ${url}`, error);
-                updateStatusCell(false, statusCell, rowId);
+                console.error(`Error checking video status for ${url}`, error);
+                updateStatusCell(false, statusCell, rowId); // Mark offline on error
             }
         }
 
+        // Update the table's status cell and the floating online box
         function updateStatusCell(isOnline, statusCell, rowId) {
-            statusCell.className = `status ${isOnline ? "online" : "offline"}`;
+            statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
             statusCell.textContent = isOnline ? "Online" : "Offline";
+
+            // After every update, refresh the floating list of online users
             updateOnlineList();
         }
 
         // Update the floating "Currently Online" box
         function updateOnlineList() {
             const onlineList = document.getElementById("onlineList");
-            onlineList.innerHTML = ''; // Clear current list
+            onlineList.innerHTML = ""; // Clear the current list
 
             const onlineRows = document.querySelectorAll(".status.online");
             if (onlineRows.length === 0) {
@@ -271,7 +274,7 @@
 
                 const listItem = document.createElement("li");
                 const link = document.createElement("a");
-                link.href = `#${row.id}`; // Link to the table row
+                link.href = `#${row.id}`; // Use the row's ID for linking
                 link.textContent = name;
                 listItem.appendChild(link);
 
@@ -279,7 +282,7 @@
             });
         }
 
-        // Event Listeners
+        // Add Event Listeners for Buttons
         document.getElementById("refreshButton").addEventListener("click", populateTable);
 
         const modeButton = document.getElementById("modeButton");
@@ -290,7 +293,7 @@
                 : "Light Mode";
         });
 
-        // Initial load
+        // Populate the table on page load
         populateTable();
     </script>
 </body>
