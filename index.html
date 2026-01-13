@@ -1,260 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Video Links & Stream Status</title>
-<style>
-/* General Page Styles */
-body {
-font-family: 'Arial', sans-serif;
-background: #1e1e1e; /* Default dark mode */
-color: #f5f5f5;
-line-height: 1.6;
-margin: 0;
-padding: 20px;
-position: relative; /* Needed for absolute positioning */
-transition: background-color 0.3s, color 0.3s; /* Smooth transition for light/dark toggle */
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Links & Stream Status</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1e1e1e; /* Default dark mode */
+            color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
 
-body.light-mode {
-background: #f3f4f6; /* Light background */
-color: #333;
-}
+        body.light-mode {
+            background: #f3f4f6;
+            color: #333;
+        }
 
-h1 {
-text-align: center;
-font-size: 24px;
-margin-bottom: 20px;
-}
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
 
-/* Table Styling */
-table {
-width: 90%;
-margin: 0 auto;
-border-collapse: collapse;
-background: #2e2e2e;
-border-radius: 8px;
-transition: background-color 0.3s;
-font-size: 14px; /* Smaller font for compact design */
-}
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            border-radius: 8px;
+            background: #2e2e2e;
+            color: #fff;
+        }
 
-body.light-mode table {
-background: #fff;
-}
+        body.light-mode table {
+            background: #fff;
+            color: #333;
+        }
 
-thead tr {
-background-color: #4285f4;
-color: #fff;
-}
+        thead tr {
+            background-color: #4285f4;
+            color: #fff;
+        }
 
-th, td {
-            padding: 10px; /* Reduced padding for compact layout */
+        th, td {
             padding: 10px;
-text-align: left;
-}
+            text-align: left;
+        }
 
-tbody tr:nth-child(even) {
-background: #333333;
-}
+        tbody tr:nth-child(even) {
+            background: #333;
+        }
 
-tbody tr:hover {
-background: #444;
-cursor: pointer;
-}
+        body.light-mode tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
 
-body.light-mode tbody tr:nth-child(even) {
-background: #f9f9f9;
-}
+        tbody tr:hover {
+            background: #444;
+        }
 
-body.light-mode tbody tr:hover {
-background: #eef;
-}
+        body.light-mode tbody tr:hover {
+            background: #e0e0e0;
+        }
 
-/* Status Chips */
-.status {
-display: inline-block;
-            padding: 3px 8px; /* Smaller chips */
-            padding: 3px 8px;
-font-size: 12px;
-border-radius: 20px;
-text-align: center;
-font-weight: bold;
-color: #fff;
-            vertical-align: middle; /* Align with links */
-            vertical-align: middle;
-line-height: 1.4;
-}
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
 
-.status.online {
-background-color: #34a853;
-}
+        .status.online {
+            background-color: #34a853;
+        }
 
-.status.offline {
-background-color: #ea4335;
-}
+        .status.offline {
+            background-color: #ea4335;
+        }
 
-.status.checking {
-background-color: #fbbc05;
-}
+        .status.checking {
+            background-color: #fbbc05;
+        }
 
-        /* Link Styling */
-a {
-text-decoration: none;
-color: #8ab4f8;
-            vertical-align: middle; /* Align links */
-            vertical-align: middle;
-}
-
-a:hover {
-text-decoration: underline;
-}
-
-body.light-mode a {
-color: #4285f4;
-}
-
-        /* Floating Buttons */
-#refreshButton, #modeButton {
-position: fixed;
-bottom: 20px;
-padding: 10px 20px;
-background-color: #4285f4;
-color: #fff;
-border: none;
-border-radius: 5px;
-cursor: pointer;
-            font-size: 14px; /* Slightly smaller buttons */
+        #refreshButton, #modeButton {
+            position: fixed;
+            bottom: 20px;
+            padding: 10px 20px;
+            background-color: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
             font-size: 14px;
-font-weight: bold;
-box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-z-index: 100;
-}
+            font-weight: bold;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
 
-#refreshButton:hover, #modeButton:hover {
-background-color: #306dc5;
-}
+        #refreshButton:hover, #modeButton:hover {
+            background-color: #306dc5;
+        }
 
-#refreshButton {
-            left: 20px; /* Bottom-left corner */
+        #refreshButton {
             left: 20px;
-}
+        }
 
-#modeButton {
-            right: 20px; /* Bottom-right corner */
+        #modeButton {
             right: 20px;
-}
-</style>
+        }
+    </style>
 </head>
 <body>
-<h1>Video Links & Stream Status</h1>
+    <h1>Video Links & Stream Status</h1>
 
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Video Link</th>
-<th>Status</th>
-</tr>
-</thead>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Video Link</th>
+                <th>Status</th>
+            </tr>
+        </thead>
         <tbody id="videoTableBody">
-            <!-- Table rows will be dynamically added here -->
+            <!-- Rows will be added dynamically -->
         </tbody>
-        <tbody id="videoTableBody"></tbody>
-</table>
+    </table>
 
-    <!-- Floating Buttons -->
-<button id="refreshButton">Refresh</button>
-<button id="modeButton">Light Mode</button>
+    <!-- Buttons -->
+    <button id="refreshButton">Refresh</button>
+    <button id="modeButton">Light Mode</button>
 
-<script>
-        let videoLinks = []; // Global storage for fetched links
-        let videoLinks = [];
+    <script>
+        let videoLinks = []; // Store the video links here
 
-        // Concurrency helper function
-        // Helper function to control concurrency
-async function withConcurrencyLimit(tasks, limit) {
-const results = [];
-const executing = [];
+        // Fetching the data
+        async function fetchVideoLinks() {
+            videoLinks = [
+                { name: "Twitch Streamer", url: "https://www.twitch.tv/some_streamer" },
+                { name: "Kick Streamer", url: "https://kick.com/another_streamer" },
+                { name: "Sample Video", url: "https://example.com/sample-video.mp4" }
+                // Add more links if needed
+            ];
+        }
 
-for (const task of tasks) {
-const promise = task().then(result => {
-executing.splice(executing.indexOf(promise), 1);
-return result;
-});
-results.push(promise);
+        // Simulate checking the video status
+        async function checkVideoStatus(url, statusCell) {
+            try {
+                // Simulate status check with random data for demo
+                const isOnline = Math.random() > 0.5; // Simulated: 50% chance online/offline
+                statusCell.textContent = isOnline ? 'Online' : 'Offline';
+                statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
+            } catch (error) {
+                console.error(`Error checking status for ${url}:`, error);
+                statusCell.textContent = 'Offline';
+                statusCell.className = 'status offline';
+            }
+        }
 
-                // Limit number of ongoing tasks
-                // Enforce concurrency limit
-executing.push(promise);
-if (executing.length >= limit) {
-await Promise.race(executing);
-}
-}
+        // Populate the table dynamically
+        async function populateTable() {
+            await fetchVideoLinks(); // Fetch the links
+            const tableBody = document.getElementById('videoTableBody');
+            tableBody.innerHTML = ''; // Clear current rows
 
-return Promise.all(results);
-}
+            videoLinks.forEach((video) => {
+                const row = document.createElement('tr');
 
-        // Fetch video links JSON file
-async function fetchVideoLinks() {
-try {
-                const response = await fetch('video-links.json'); // Replace with correct path
-                const response = await fetch('video-links.json');
-videoLinks = await response.json();
-return videoLinks;
-} catch (error) {
-console.error('Error fetching video links:', error);
-return [];
-}
-}
+                const nameCell = document.createElement('td');
+                nameCell.textContent = video.name;
+                row.appendChild(nameCell);
 
-        // Populate the table with concurrency limited to 10
-async function populateTable() {
-if (videoLinks.length === 0) await fetchVideoLinks();
+                const linkCell = document.createElement('td');
+                const linkAnchor = document.createElement('a');
+                linkAnchor.href = video.url;
+                linkAnchor.textContent = video.url;
+                linkAnchor.target = '_blank';
+                linkCell.appendChild(linkAnchor);
+                row.appendChild(linkCell);
 
-const tableBody = document.getElementById('videoTableBody');
-            tableBody.innerHTML = ''; // Clear existing rows
-            tableBody.innerHTML = '';
+                const statusCell = document.createElement('td');
+                statusCell.className = 'status checking';
+                statusCell.textContent = 'Checking...';
+                row.appendChild(statusCell);
 
-const tasks = videoLinks.map(video => async () => {
-const row = document.createElement('tr');
+                tableBody.appendChild(row);
 
-const nameCell = document.createElement('td');
-nameCell.textContent = video.name;
-row.appendChild(nameCell);
+                // Simulate the video status check
+                checkVideoStatus(video.url, statusCell);
+            });
+        }
 
-const linkCell = document.createElement('td');
-const linkAnchor = document.createElement('a');
-linkAnchor.href = video.url;
-linkAnchor.textContent = video.url;
-linkAnchor.target = '_blank';
-linkCell.appendChild(linkAnchor);
-row.appendChild(linkCell);
+        // Refresh Button: Re-populates the table
+        document.getElementById('refreshButton').addEventListener('click', populateTable);
 
-const statusCell = document.createElement('td');
-statusCell.className = 'status checking';
-statusCell.textContent = 'Checking...';
-row.appendChild(statusCell);
+        // Light/Dark Mode Toggle
+        const modeButton = document.getElementById('modeButton');
+        modeButton.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            modeButton.textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
+        });
 
-tableBody.appendChild(row);
-
-await checkVideoStatus(video.url, statusCell);
-});
-
-            // Limit concurrency to 10
-            await withConcurrencyLimit(tasks, 10);
-            // Limit concurrency to 5
-            await withConcurrencyLimit(tasks, 5);
-}
-
-async function checkVideoStatus(url, statusCell) {
-            // Check logic for Twitch, Kick, or video files
-            // Implement Twitch, Kick, and video checks based on previous examples
-}
-
-document.getElementById('refreshButton').addEventListener('click', populateTable);
-        populateTable(); // Initialize page
+        // Initialize the table on page load
         populateTable();
-</script>
+    </script>
 </body>
 </html>
