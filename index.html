@@ -110,6 +110,33 @@
             background-color: #fbbc05;
         }
 
+        /* Bubble Button Styling for Links */
+        .link-button {
+            display: inline-block;
+            background-color: #4285f4;
+            color: #fff;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 20px;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .link-button:hover {
+            background-color: #306dc5;
+            transform: scale(1.05);
+            text-decoration: none;
+        }
+
+        body.light-mode .link-button {
+            background-color: #007AFF;
+        }
+
+        body.light-mode .link-button:hover {
+            background-color: #005BB5;
+        }
+
         #refreshButton, #modeButton {
             position: fixed;
             bottom: 20px;
@@ -176,6 +203,14 @@
             }
         }
 
+        function stripSpecialCharacters(text) {
+            return text.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        }
+
+        function customSort(a, b) {
+            return stripSpecialCharacters(a.name).localeCompare(stripSpecialCharacters(b.name));
+        }
+
         function splitIntoTwoColumns(sortedVideos) {
             const midIndex = Math.ceil(sortedVideos.length / 2);
             return [sortedVideos.slice(0, midIndex), sortedVideos.slice(midIndex)];
@@ -198,7 +233,7 @@
             leftTable.innerHTML = '';
             rightTable.innerHTML = '';
 
-            videoLinks.sort((a, b) => a.name.localeCompare(b.name));
+            videoLinks.sort(customSort);
             const sortedColumns = splitIntoTwoColumns(videoLinks);
 
             [sortedColumns[0], sortedColumns[1]].forEach((videos, index) => {
@@ -206,7 +241,7 @@
                 let currentLetter = '';
 
                 videos.forEach(video => {
-                    const videoLetter = video.name[0].toUpperCase();
+                    const videoLetter = stripSpecialCharacters(video.name[0]).toUpperCase();
                     if (videoLetter !== currentLetter) {
                         currentTable.appendChild(createLetterDivider(videoLetter));
                         currentLetter = videoLetter;
@@ -219,7 +254,8 @@
                     const linkCell = document.createElement('td');
                     const linkAnchor = document.createElement('a');
                     linkAnchor.href = video.url;
-                    linkAnchor.textContent = video.url;
+                    linkAnchor.textContent = 'Watch';
+                    linkAnchor.className = 'link-button';
                     linkAnchor.target = '_blank';
                     linkCell.appendChild(linkAnchor);
 
