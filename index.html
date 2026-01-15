@@ -75,17 +75,16 @@
             background: #eef;
         }
 
-        .letter-divider {
-            text-align: center;
+        .alphabet-indicator {
+            font-size: 11px;
             font-weight: bold;
-            color: #fff;
-            background: #555;
-            padding: 5px 0;
+            color: #aaa;
+            text-transform: uppercase;
+            padding: 5px 10px;
         }
 
-        body.light-mode .letter-divider {
-            background: #ddd;
-            color: #333;
+        body.light-mode .alphabet-indicator {
+            color: #666;
         }
 
         .status {
@@ -169,6 +168,8 @@
             font-size: 14px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
             z-index: 1000;
+            max-height: none; /* Removes any height constraints */
+            overflow: visible; /* Ensures no scrollbars appear */
         }
 
         #onlineUsers h3 {
@@ -182,8 +183,6 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            max-height: 150px;
-            overflow-y: auto;
         }
 
         #onlineUsers li {
@@ -266,7 +265,22 @@
 
             columns.forEach((group, index) => {
                 const currentTable = index === 0 ? leftTable : rightTable;
+                let currentLetter = '';
+
                 group.forEach(video => {
+                    const videoLetter = video.name[0].toUpperCase();
+
+                    if (videoLetter !== currentLetter) {
+                        const alphabetRow = document.createElement('tr');
+                        const alphabetCell = document.createElement('td');
+                        alphabetCell.colSpan = 3;
+                        alphabetCell.className = 'alphabet-indicator';
+                        alphabetCell.textContent = videoLetter;
+                        alphabetRow.appendChild(alphabetCell);
+                        currentTable.appendChild(alphabetRow);
+                        currentLetter = videoLetter;
+                    }
+
                     const row = document.createElement('tr');
 
                     const nameCell = document.createElement('td');
@@ -341,39 +355,39 @@
             }
         }
 
-        async function checkTwitchStatus(username) {
-            try {
-                const response = await fetch(`https://www.twitch.tv/${username}`);
-                const html = await response.text();
-                return html.includes(`"isLiveBroadcast":true`);
-            } catch (error) {
-                console.error(`Error checking Twitch status: ${username}`, error);
-                return false;
-            }
-        }
-
-        async function checkKickStatus(username) {
-            try {
-                const response = await fetch(`https://kick.com/api/v2/channels/${username}`);
-                const data = await response.json();
-                return data?.livestream?.is_live ?? false;
-            } catch (error) {
-                console.error(`Error checking Kick status: ${username}`, error);
-                return false;
-            }
-        }
-
-        function checkVideoLink(url, statusCell) {
-            const video = document.createElement('video');
-            video.onloadeddata = () => updateStatusCell(true, statusCell);
-            video.onerror = () => updateStatusCell(false, statusCell);
-            video.src = url;
-        }
-
         function updateStatusCell(isOnline, statusCell) {
             statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
             statusCell.textContent = isOnline ? 'Online' : 'Offline';
             updateOnlineList();
+        }
+
+        function checkVideoLink(url, statusCell) {
+          const video = document.createElement('video');
+          video.onloadeddata = () => updateStatusCell(true, statusCell);
+          video.onerror = () => updateStatusCell(false, statusCell);
+          video.src = url;
+        }
+
+        async function checkTwitchStatus(username) {
+          try {
+            const response = await fetch(`https://www.twitch.tv/${username}`);
+            const html = await response.text();
+            return html.includes(`"isLiveBroadcast":true`);
+          } catch (error) {
+            console.error(`Error checking Twitch status: ${username}`, error);
+            return false;
+          }
+        }
+
+        async function checkKickStatus(username) {
+          try {
+            const response = await fetch(`https://kick.com/api/v2/channels/${username}`);
+            const data = await response.json();
+            return data?.livestream?.is_live ?? false;
+          } catch (error) {
+            console.error(`Error checking Kick status: ${username}`, error);
+            return false;
+          }
         }
 
         document.getElementById('refreshButton').addEventListener('click', populateTables);
