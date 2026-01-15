@@ -13,6 +13,7 @@
             line-height: 1.6;
             margin: 0;
             padding: 20px;
+            position: relative;
             transition: background-color 0.3s, color 0.3s;
         }
 
@@ -39,7 +40,8 @@
             border-collapse: collapse;
             background: #2e2e2e;
             border-radius: 8px;
-            margin-bottom: 20px;
+            transition: background-color 0.3s;
+            font-size: 14px;
         }
 
         body.light-mode table {
@@ -62,51 +64,198 @@
 
         tbody tr:hover {
             background: #444;
+            cursor: pointer;
+        }
+
+        body.light-mode tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        body.light-mode tbody tr:hover {
+            background: #eef;
         }
 
         .alphabet-indicator {
+            font-size: 11px;
             font-weight: bold;
             color: #aaa;
             text-transform: uppercase;
             padding: 5px 10px;
         }
 
+        body.light-mode .alphabet-indicator {
+            color: #666;
+        }
+
         .status {
+            display: inline-block;
             padding: 3px 8px;
-            border-radius: 10px;
             font-size: 12px;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: bold;
             color: #fff;
         }
 
         .status.online {
-            background: #34a853;
+            background-color: #34a853;
         }
 
         .status.offline {
-            background: #ea4335;
+            background-color: #ea4335;
         }
 
         .status.checking {
-            background: #fbbc05;
+            background-color: #fbbc05;
         }
 
+        /* Bubble Button Styling for Links */
         .link-button {
+            display: inline-block;
             background-color: #4285f4;
-            padding: 6px 12px;
-            border-radius: 8px;
-            text-decoration: none;
             color: #fff;
-            font-size: 14px;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 20px;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
         }
 
         .link-button:hover {
             background-color: #306dc5;
+            transform: scale(1.05);
+            text-decoration: none;
+        }
+
+        body.light-mode .link-button {
+            background-color: #007AFF;
+        }
+
+        body.light-mode .link-button:hover {
+            background-color: #005BB5;
+        }
+
+        #refreshButton, #modeButton {
+            position: fixed;
+            bottom: 20px;
+            padding: 10px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #refreshButton {
+            left: 30px;
+        }
+
+        #modeButton {
+            right: 30px;
+        }
+
+        /* Floating Online Users List */
+        #onlineUsers {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 14px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-height: none;
+            overflow: visible;
+        }
+
+        #onlineUsers h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            border-bottom: 1px solid #666;
+            padding-bottom: 5px;
+        }
+
+        #onlineUsers ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #onlineUsers li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        #onlineUsers .link-button {
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+
+        /* Floating Video Player */
+        #floatingPlayer {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 400px;
+            background: rgba(0, 0, 0, 0.95);
+            border-radius: 8px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            display: none;
+            overflow: hidden;
+        }
+
+        #floatingPlayer.active {
+            display: block;
+        }
+
+        #floatingPlayer .player-header {
+            background: #333;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+
+        #floatingPlayer .player-title {
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        #floatingPlayer .player-close {
+            background: #ea4335;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        #floatingPlayer .player-close:hover {
+            background: #c53929;
+        }
+
+        #floatingPlayer video,
+        #floatingPlayer iframe {
+            width: 100%;
+            height: 225px;
+            border: none;
+            display: block;
         }
     </style>
 </head>
 <body>
     <h1>Video Links & Stream Status</h1>
-
     <div class="table-container">
         <table>
             <thead>
@@ -129,73 +278,237 @@
             <tbody id="rightTable"></tbody>
         </table>
     </div>
+
+    <!-- Floating Buttons -->
     <button id="refreshButton">Refresh</button>
+    <button id="modeButton">Light Mode</button>
+
+    <!-- Floating Online Users -->
+    <div id="onlineUsers">
+        <h3>Online Now</h3>
+        <ul id="onlineList">
+            <li>No one is online</li>
+        </ul>
+    </div>
+
+    <!-- Floating Video Player -->
+    <div id="floatingPlayer">
+        <div class="player-header">
+            <span class="player-title" id="playerTitle">Video Player</span>
+            <button class="player-close" id="closePlayer">Close</button>
+        </div>
+        <div id="playerContent"></div>
+    </div>
 
     <script>
-        const videoLinksUrl = "video-links.json"; // Path to the JSON file
+        let videoLinks = [];
 
-        // Fetch video links and populate tables
-        async function populateTables() {
+        async function fetchVideoLinks() {
             try {
-                const response = await fetch(videoLinksUrl);
-                if (!response.ok) throw new Error("Failed to fetch video links.");
-
-                const videoLinks = await response.json();
-
-                // Alphabetize by video name
-                videoLinks.sort((a, b) => a.name.localeCompare(b.name));
-
-                // Split the data into two halves for two tables
-                const leftTable = document.getElementById("leftTable");
-                const rightTable = document.getElementById("rightTable");
-
-                // Clear existing rows
-                leftTable.innerHTML = "";
-                rightTable.innerHTML = "";
-
-                const midIndex = Math.ceil(videoLinks.length / 2);
-                const [leftData, rightData] = [videoLinks.slice(0, midIndex), videoLinks.slice(midIndex)];
-
-                // Append rows to tables
-                appendRowsToTable(leftTable, leftData);
-                appendRowsToTable(rightTable, rightData);
-
+                const response = await fetch('video-links.json');
+                videoLinks = await response.json();
+                return videoLinks;
             } catch (error) {
-                console.error("Error populating tables:", error);
+                console.error('Error fetching video links:', error);
+                return [];
             }
         }
 
-        function appendRowsToTable(table, data) {
-            data.forEach(video => {
-                const row = document.createElement("tr");
+        async function populateTables() {
+            if (videoLinks.length === 0) await fetchVideoLinks();
 
-                const nameCell = document.createElement("td");
-                nameCell.textContent = video.name;
+            const leftTable = document.getElementById('leftTable');
+            const rightTable = document.getElementById('rightTable');
+            leftTable.innerHTML = '';
+            rightTable.innerHTML = '';
 
-                const linkCell = document.createElement("td");
-                const linkButton = document.createElement("a");
-                linkButton.textContent = "Watch";
-                linkButton.href = video.url;
-                linkButton.classList.add("link-button");
-                linkCell.appendChild(linkButton);
+            videoLinks.sort((a, b) => a.name.localeCompare(b.name));
+            const midIndex = Math.ceil(videoLinks.length / 2);
+            const columns = [videoLinks.slice(0, midIndex), videoLinks.slice(midIndex)];
 
-                const statusCell = document.createElement("td");
-                const statusSpan = document.createElement("span");
-                statusSpan.className = "status checking";
-                statusSpan.textContent = "Checking...";
-                statusCell.appendChild(statusSpan);
+            updateOnlineList();
 
-                row.appendChild(nameCell);
-                row.appendChild(linkCell);
-                row.appendChild(statusCell);
-                table.appendChild(row);
+            columns.forEach((group, index) => {
+                const currentTable = index === 0 ? leftTable : rightTable;
+                let currentLetter = '';
+
+                group.forEach(video => {
+                    const videoLetter = video.name[0].toUpperCase();
+
+                    if (videoLetter !== currentLetter) {
+                        const alphabetRow = document.createElement('tr');
+                        const alphabetCell = document.createElement('td');
+                        alphabetCell.colSpan = 3;
+                        alphabetCell.className = 'alphabet-indicator';
+                        alphabetCell.textContent = videoLetter;
+                        alphabetRow.appendChild(alphabetCell);
+                        currentTable.appendChild(alphabetRow);
+                        currentLetter = videoLetter;
+                    }
+
+                    const row = document.createElement('tr');
+
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = video.name;
+                    row.appendChild(nameCell);
+
+                    const linkCell = document.createElement('td');
+                    const linkButton = document.createElement('a');
+                    linkButton.href = '#';
+                    linkButton.textContent = 'Watch';
+                    linkButton.className = 'link-button';
+                    linkButton.onclick = (e) => {
+                        e.preventDefault();
+                        openFloatingPlayer(video.name, video.url);
+                    };
+                    linkCell.appendChild(linkButton);
+                    row.appendChild(linkCell);
+
+                    const statusCell = document.createElement('td');
+                    statusCell.className = 'status checking';
+                    statusCell.textContent = 'Checking...';
+                    row.appendChild(statusCell);
+
+                    currentTable.appendChild(row);
+                    checkVideoStatus(video.url, statusCell);
+                });
             });
         }
 
-        // Refresh tables on button click
-        document.getElementById("refreshButton").addEventListener("click", populateTables);
+        function updateOnlineList() {
+            const onlineList = document.getElementById('onlineList');
+            onlineList.innerHTML = '';
 
-        // Populate tables on load
+            const onlineStatuses = document.querySelectorAll('.status.online');
+            if (onlineStatuses.length === 0) {
+                const emptyMsg = document.createElement('li');
+                emptyMsg.textContent = 'No one is online';
+                onlineList.appendChild(emptyMsg);
+            } else {
+                onlineStatuses.forEach(status => {
+                    const row = status.parentNode;
+                    const name = row.querySelector('td:first-child').textContent;
+                    const linkButton = row.querySelector('.link-button');
+                    
+                    // Find the original video data to get the URL
+                    const video = videoLinks.find(v => v.name === name);
+                    if (!video) return;
+
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<span>${name}</span>`;
+                    const watchButton = document.createElement('a');
+                    watchButton.href = '#';
+                    watchButton.textContent = 'Watch';
+                    watchButton.className = 'link-button';
+                    watchButton.onclick = (e) => {
+                        e.preventDefault();
+                        openFloatingPlayer(name, video.url);
+                    };
+                    listItem.appendChild(watchButton);
+
+                    onlineList.appendChild(listItem);
+                });
+            }
+        }
+
+        function openFloatingPlayer(name, url) {
+            const player = document.getElementById('floatingPlayer');
+            const playerTitle = document.getElementById('playerTitle');
+            const playerContent = document.getElementById('playerContent');
+            
+            playerTitle.textContent = name;
+            playerContent.innerHTML = '';
+            
+            if (url.includes('twitch.tv')) {
+                const username = url.split('twitch.tv/')[1];
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://player.twitch.tv/?channel=${username}&parent=${window.location.hostname}`;
+                iframe.allowfullscreen = true;
+                playerContent.appendChild(iframe);
+            } else if (url.includes('kick.com')) {
+                const username = url.split('kick.com/')[1];
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://player.kick.com/${username}`;
+                iframe.allowfullscreen = true;
+                playerContent.appendChild(iframe);
+            } else {
+                const video = document.createElement('video');
+                video.src = url;
+                video.controls = true;
+                video.autoplay = true;
+                playerContent.appendChild(video);
+            }
+            
+            player.classList.add('active');
+        }
+
+        document.getElementById('closePlayer').addEventListener('click', () => {
+            const player = document.getElementById('floatingPlayer');
+            const playerContent = document.getElementById('playerContent');
+            playerContent.innerHTML = '';
+            player.classList.remove('active');
+        });
+
+        async function checkVideoStatus(url, statusCell) {
+            try {
+                if (url.includes('twitch.tv')) {
+                    const username = url.split('twitch.tv/')[1];
+                    const isLive = await checkTwitchStatus(username);
+                    updateStatusCell(isLive, statusCell);
+                } else if (url.includes('kick.com')) {
+                    const username = url.split('kick.com/')[1];
+                    const isLive = await checkKickStatus(username);
+                    updateStatusCell(isLive, statusCell);
+                } else {
+                    checkVideoLink(url, statusCell);
+                }
+            } catch (error) {
+                console.error(`Error checking status for ${url}:`, error);
+                updateStatusCell(false, statusCell);
+            }
+        }
+
+        function updateStatusCell(isOnline, statusCell) {
+            statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
+            statusCell.textContent = isOnline ? 'Online' : 'Offline';
+            updateOnlineList();
+        }
+
+        function checkVideoLink(url, statusCell) {
+          const video = document.createElement('video');
+          video.onloadeddata = () => updateStatusCell(true, statusCell);
+          video.onerror = () => updateStatusCell(false, statusCell);
+          video.src = url;
+        }
+
+        async function checkTwitchStatus(username) {
+          try {
+            const response = await fetch(`https://www.twitch.tv/${username}`);
+            const html = await response.text();
+            return html.includes(`"isLiveBroadcast":true`);
+          } catch (error) {
+            console.error(`Error checking Twitch status: ${username}`, error);
+            return false;
+          }
+        }
+
+        async function checkKickStatus(username) {
+          try {
+            const response = await fetch(`https://kick.com/api/v2/channels/${username}`);
+            const data = await response.json();
+            return data?.livestream?.is_live ?? false;
+          } catch (error) {
+            console.error(`Error checking Kick status: ${username}`, error);
+            return false;
+          }
+        }
+
+        document.getElementById('refreshButton').addEventListener('click', populateTables);
+        document.getElementById('modeButton').addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            document.getElementById('modeButton').textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
+        });
+
         populateTables();
     </script>
 </body>
