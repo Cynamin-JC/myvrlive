@@ -10,8 +10,10 @@
             font-family: 'Arial', sans-serif;
             background: #1e1e1e;
             color: #f5f5f5;
+            line-height: 1.6;
             margin: 0;
             padding: 20px;
+            position: relative;
             transition: background-color 0.3s, color 0.3s;
         }
 
@@ -22,6 +24,7 @@
 
         h1 {
             text-align: center;
+            font-size: 24px;
             margin-bottom: 20px;
         }
 
@@ -37,53 +40,101 @@
             border-collapse: collapse;
             background: #2e2e2e;
             border-radius: 8px;
+            transition: background-color 0.3s;
             font-size: 14px;
         }
 
-        th, td { padding: 10px; text-align: left; }
-        thead tr { background: #4285f4; color: #fff; }
+        body.light-mode table {
+            background: #fff;
+        }
 
-        tbody tr:nth-child(even) { background: #333; }
-        tbody tr:hover { background: #444; }
-        body.light-mode tbody tr:nth-child(even) { background: #f9f9f9; }
-        body.light-mode tbody tr:hover { background: #eef; }
+        thead tr {
+            background-color: #4285f4;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #333333;
+        }
+
+        tbody tr:hover {
+            background: #444;
+            cursor: pointer;
+        }
+
+        body.light-mode tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        body.light-mode tbody tr:hover {
+            background: #eef;
+        }
+
+        .alphabet-indicator {
+            font-size: 11px;
+            font-weight: bold;
+            color: #aaa;
+            text-transform: uppercase;
+            padding: 5px 10px;
+        }
+
+        body.light-mode .alphabet-indicator {
+            color: #666;
+        }
 
         .status {
             display: inline-block;
             padding: 3px 8px;
             font-size: 12px;
-            border-radius: 999px;
-            font-weight: bold;
+            border-radius: 20px;
             text-align: center;
+            font-weight: bold;
             color: #fff;
         }
 
-        .status.online { background: #34a853; }
-        .status.offline { background: #ea4335; }
-        .status.checking { background: #fbbc05; }
+        .status.online {
+            background-color: #34a853;
+        }
 
+        .status.offline {
+            background-color: #ea4335;
+        }
+
+        .status.checking {
+            background-color: #fbbc05;
+        }
+
+        /* Bubble Button Styling for Links */
         .link-button {
             display: inline-block;
-            background: #4285f4;
+            background-color: #4285f4;
             color: #fff;
+            font-weight: bold;
             padding: 6px 12px;
             border-radius: 20px;
+            text-align: center;
             text-decoration: none;
-            cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
         }
 
         .link-button:hover {
-            background: #306dc5;
+            background-color: #306dc5;
             transform: scale(1.05);
+            text-decoration: none;
         }
 
         body.light-mode .link-button {
-            background: #007AFF;
+            background-color: #007AFF;
         }
 
         body.light-mode .link-button:hover {
-            background: #005BB5;
+            background-color: #005BB5;
         }
 
         #refreshButton, #modeButton {
@@ -97,29 +148,57 @@
             cursor: pointer;
         }
 
-        #refreshButton { left: 30px; }
-        #modeButton { right: 30px; }
+        #refreshButton {
+            left: 30px;
+        }
 
+        #modeButton {
+            right: 30px;
+        }
+
+        /* Floating Online Users List */
         #onlineUsers {
             position: fixed;
             bottom: 80px;
             left: 20px;
             width: 300px;
             background: rgba(0, 0, 0, 0.9);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
             color: white;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 14px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-height: none; /* Removes any height constraints */
+            overflow: visible; /* Ensures no scrollbars appear */
         }
 
         #onlineUsers h3 {
             margin: 0 0 10px;
-            border-bottom: 1px solid #666;
             font-size: 16px;
+            border-bottom: 1px solid #666;
+            padding-bottom: 5px;
         }
 
-        #onlineUsers ul { list-style: none; padding: 0; }
+        #onlineUsers ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
 
+        #onlineUsers li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        #onlineUsers .link-button {
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+
+        /* Floating Video Player */
         #floatingVideoPlayer {
             position: fixed;
             bottom: 150px;
@@ -128,13 +207,13 @@
             max-width: 90%;
             background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            padding: 15px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
             display: none;
             flex-direction: column;
             align-items: center;
+            z-index: 2000;
         }
 
         #floatingVideoPlayer video {
@@ -147,8 +226,8 @@
             padding: 5px 10px;
             background: #ea4335;
             border: none;
-            color: white;
             border-radius: 8px;
+            color: white;
             cursor: pointer;
         }
 
@@ -164,114 +243,105 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Link</th>
+                    <th>Video Link</th>
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody id="videoTable"></tbody>
+            <tbody id="leftTable"></tbody>
+        </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Video Link</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="rightTable"></tbody>
         </table>
     </div>
+
+    <!-- Floating Buttons -->
     <button id="refreshButton">Refresh</button>
     <button id="modeButton">Light Mode</button>
 
+    <!-- Floating Online Users -->
     <div id="onlineUsers">
         <h3>Online Now</h3>
-        <ul id="onlineList"><li>No one is online</li></ul>
+        <ul id="onlineList">
+            <li>No one is online</li>
+        </ul>
     </div>
 
+    <!-- Floating Video Player -->
     <div id="floatingVideoPlayer">
         <video id="videoPlayer" controls autoplay></video>
         <button id="closeVideoPlayer">Close</button>
     </div>
 
     <script>
-        let videoLinks = [
-            { name: "Streamer1", url: "https://www.twitch.tv/streamer1" },
-            { name: "Streamer2", url: "https://www.kick.com/streamer2" },
-            { name: "Direct Link", url: "https://example.com/stream.mp4" }
-        ];
+        let videoLinks = [];
 
-        async function fetchVideoLinks() { /* Mocked here, do real fetching */ }
-
-        async function checkTwitchStatus(username) {
-            // Simulate async Twitch check
-            return Math.random() > 0.5; // Replace with real API call
-        }
-
-        async function checkKickStatus(username) {
-            // Simulate async Kick check
-            return Math.random() > 0.5; // Replace with real API call
-        }
-
-        function updateStatus(isOnline, statusElement) {
-            statusElement.className = isOnline ? 'status online' : 'status offline';
-            statusElement.textContent = isOnline ? 'Online' : 'Offline';
-            updateOnlineUsers();
-        }
-
-        function updateOnlineUsers() {
-            const onlineList = document.getElementById('onlineList');
-            onlineList.innerHTML = '';
-            const onlineUsers = videoLinks.filter(link => link.isOnline);
-            if (onlineUsers.length) {
-                onlineUsers.forEach(user => {
-                    const li = document.createElement('li');
-                    li.textContent = user.name;
-                    onlineList.appendChild(li);
-                });
-            } else {
-                const li = document.createElement('li');
-                li.textContent = 'No one is online';
-                onlineList.appendChild(li);
+        async function fetchVideoLinks() {
+            try {
+                const response = await fetch('video-links.json');
+                videoLinks = await response.json();
+                return videoLinks;
+            } catch (error) {
+                console.error('Error fetching video links:', error);
+                return [];
             }
         }
 
+        function addWatchButtonEvent(watchButton, url) {
+            watchButton.addEventListener('click', () => openVideoPlayer(url));
+        }
+
         function openVideoPlayer(url) {
-            const player = document.getElementById('videoPlayer');
-            const playerContainer = document.getElementById('floatingVideoPlayer');
-            player.src = url;
-            playerContainer.style.display = 'flex';
+            const videoElement = document.getElementById('videoPlayer');
+            const videoPlayerContainer = document.getElementById('floatingVideoPlayer');
+            videoElement.src = url;
+            videoPlayerContainer.style.display = 'flex';
         }
 
         document.getElementById('closeVideoPlayer').addEventListener('click', () => {
-            const player = document.getElementById('videoPlayer');
-            player.src = '';
-            const playerContainer = document.getElementById('floatingVideoPlayer');
-            playerContainer.style.display = 'none';
+            const videoElement = document.getElementById('videoPlayer');
+            videoElement.pause();
+            videoElement.src = '';
+            document.getElementById('floatingVideoPlayer').style.display = 'none';
         });
 
-        function populateTable() {
-            const table = document.getElementById('videoTable');
-            table.innerHTML = '';
-            videoLinks.forEach(link => {
+        // Update your populateTables or other functions to attach `addWatchButtonEvent` calls
+        function populateTables() {
+            const leftTable = document.getElementById('leftTable');
+            const rightTable = document.getElementById('rightTable');
+
+            // Mock-up links added here (replace with your dynamic ones)
+            videoLinks = [
+                { name: "Video A", url: "https://example.com/videoA.mp4" },
+                { name: "Video B", url: "https://example.com/videoB.mp4" },
+            ];
+
+            leftTable.innerHTML = '';
+            videoLinks.forEach(video => {
                 const row = document.createElement('tr');
                 const nameCell = document.createElement('td');
-                nameCell.textContent = link.name;
                 const linkCell = document.createElement('td');
+
+                nameCell.textContent = video.name;
                 const watchButton = document.createElement('button');
-                watchButton.textContent = 'Watch';
                 watchButton.className = 'link-button';
-                watchButton.addEventListener('click', () => openVideoPlayer(link.url));
+                watchButton.textContent = "Watch";
+                addWatchButtonEvent(watchButton, video.url);
+
                 linkCell.appendChild(watchButton);
-                const statusCell = document.createElement('td');
-                statusCell.className = 'status checking';
-                statusCell.textContent = 'Checking...';
                 row.appendChild(nameCell);
                 row.appendChild(linkCell);
-                row.appendChild(statusCell);
-                table.appendChild(row);
-
-                // Simulate async online status check
-                setTimeout(() => {
-                    const isOnline = Math.random() > 0.5;
-                    link.isOnline = isOnline;
-                    updateStatus(isOnline, statusCell);
-                }, 1000);
+                leftTable.appendChild(row);
             });
         }
 
-        document.getElementById('refreshButton').addEventListener('click', populateTable);
-        populateTable();
+        populateTables();
     </script>
 </body>
 </html>
