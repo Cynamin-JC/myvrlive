@@ -304,6 +304,17 @@
             }
         }
 
+        // Process promises in batches to limit concurrency
+        async function processInBatches(promises, batchSize = 10) {
+            const results = [];
+            for (let i = 0; i < promises.length; i += batchSize) {
+                const batch = promises.slice(i, i + batchSize);
+                const batchResults = await Promise.all(batch);
+                results.push(...batchResults);
+            }
+            return results;
+        }
+
         async function populateTables() {
             if (videoLinks.length === 0) await fetchVideoLinks();
 
@@ -318,7 +329,7 @@
 
             updateOnlineList();
 
-            // Collect all status check promises for parallel execution (fast for MP4 links)
+            // Collect all status check promises for batched execution
             const statusPromises = [];
 
             columns.forEach((group, index) => {
@@ -362,13 +373,13 @@
 
                     currentTable.appendChild(row);
 
-                    // Collect promise for parallel execution
-                    statusPromises.push(checkVideoStatus(video.url, statusCell));
+                    // Collect promise for batched execution
+                    statusPromises.push(() => checkVideoStatus(video.url, statusCell));
                 });
             });
 
-            // Run all status checks in parallel for maximum speed (suitable for fast MP4 links)
-            Promise.all(statusPromises).catch(err => console.error('Batch status check error:', err));
+            // Run all status checks in batches of 10 for balanced speed and reliability
+            await processInBatches(statusPromises.map(fn => fn()), 10);
         }
 
         function updateOnlineList() {
@@ -443,7 +454,7 @@
                         updateStatusCell(false, statusCell); // Timeout: assume offline
                         resolve();
                     }
-                }, 10000); // Increased to 10 seconds for live streams
+                }, 10000); // 10 seconds for live streams
 
                 video.onloadeddata = () => {
                     if (!resolved) {
