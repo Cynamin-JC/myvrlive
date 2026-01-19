@@ -153,7 +153,7 @@
             background-color: #2e7d32;
         }
 
-        #refreshButton, #modeButton, #adminButton {
+        #refreshButton, #modeButton {
             position: fixed;
             bottom: 20px;
             padding: 10px;
@@ -168,45 +168,25 @@
             left: 30px;
         }
 
-        #adminButton {
-            left: 140px;
-        }
-
         #modeButton {
             right: 30px;
         }
 
-        /* Login Modal */
-        #loginModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1600;
-        }
-
-        #loginModal.hidden {
-            display: none;
-        }
-
-        #loginModal .modal-content {
-            background: #2e2e2e;
+        /* Embedded Login/Admin Panel */
+        #loginPanel {
+            width: 90%;
+            margin: 20px auto;
             padding: 20px;
+            background: #2e2e2e;
             border-radius: 8px;
-            width: 300px;
             text-align: center;
         }
 
-        body.light-mode #loginModal .modal-content {
+        body.light-mode #loginPanel {
             background: #fff;
         }
 
-        #loginModal input {
+        #loginPanel input {
             width: 100%;
             padding: 8px;
             margin: 10px 0;
@@ -214,53 +194,8 @@
             border-radius: 4px;
         }
 
-        #loginModal button {
+        #loginPanel button {
             padding: 10px 20px;
-            background: #4285f4;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        #loginModal button:hover {
-            background: #306dc5;
-        }
-
-        /* Admin Panel */
-        #adminPanel {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #2e2e2e;
-            border: 2px solid #4285f4;
-            border-radius: 8px;
-            padding: 20px;
-            width: 400px;
-            z-index: 1600;
-            display: none; /* Always hidden by default */
-        }
-
-        body.light-mode #adminPanel {
-            background: #fff;
-            border-color: #007AFF;
-        }
-
-        #adminPanel h2 {
-            margin-top: 0;
-        }
-
-        #adminPanel textarea {
-            width: 100%;
-            height: 150px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin: 10px 0;
-        }
-
-        #adminPanel button {
-            padding: 8px 12px;
             background: #4285f4;
             color: #fff;
             border: none;
@@ -269,8 +204,24 @@
             margin: 5px;
         }
 
-        #adminPanel button:hover {
+        #loginPanel button:hover {
             background: #306dc5;
+        }
+
+        #adminSection {
+            display: none;
+        }
+
+        #adminSection h2 {
+            margin-top: 0;
+        }
+
+        #adminSection textarea {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 10px 0;
         }
 
         /* Floating Online Users List */
@@ -373,27 +324,6 @@
 <body>
     <h1>Video Links & Stream Status</h1>
 
-    <!-- Login Modal -->
-    <div id="loginModal">
-        <div class="modal-content">
-            <h2>Admin Login</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <button id="loginSubmit">Login</button>
-        </div>
-    </div>
-
-    <!-- Admin Panel -->
-    <div id="adminPanel">
-        <h2>Admin Panel</h2>
-        <p>Current Links (for manual update to video-links.json):</p>
-        <textarea id="exportTextarea" readonly></textarea>
-        <button id="exportBtn">Download JSON</button>
-        <button id="logoutBtn">Logout</button>
-        <button id="closePanel">Close</button>
-        <p><strong>To update video-links.json:</strong> Copy the JSON above, edit the file in your GitHub repo, paste, and commit.</p>
-    </div>
-
     <div class="table-container">
         <table>
             <thead>
@@ -417,9 +347,26 @@
         </table>
     </div>
 
+    <!-- Embedded Login/Admin Panel -->
+    <div id="loginPanel">
+        <div id="loginSection">
+            <h2>Admin Login</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginSubmit">Login</button>
+        </div>
+        <div id="adminSection">
+            <h2>Admin Panel</h2>
+            <p>Current Links (for manual update to video-links.json):</p>
+            <textarea id="exportTextarea" readonly></textarea>
+            <button id="exportBtn">Download JSON</button>
+            <button id="logoutBtn">Logout</button>
+            <p><strong>To update video-links.json:</strong> Copy the JSON above, edit the file in your GitHub repo, paste, and commit.</p>
+        </div>
+    </div>
+
     <!-- Floating Buttons -->
     <button id="refreshButton">Refresh</button>
-    <button id="adminButton">Admin</button>
     <button id="modeButton">Light Mode</button>
 
     <!-- Floating Online Users -->
@@ -684,26 +631,20 @@
             }
         }
 
-        // Show login modal
-        function showLoginModal() {
-            document.getElementById('loginModal').classList.remove('hidden');
-        }
-
-        function hideLoginModal() {
-            document.getElementById('loginModal').classList.add('hidden');
-        }
-
-        // Admin button functionality
-        document.getElementById('adminButton').addEventListener('click', () => {
+        // Update login/admin section visibility
+        function updateLoginSection() {
+            const loginSection = document.getElementById('loginSection');
+            const adminSection = document.getElementById('adminSection');
             if (isLoggedIn) {
-                const panel = document.getElementById('adminPanel');
+                loginSection.style.display = 'none';
+                adminSection.style.display = 'block';
                 const textarea = document.getElementById('exportTextarea');
                 textarea.value = JSON.stringify(videoLinks, null, 2);
-                panel.style.display = 'block';
             } else {
-                showLoginModal();
+                loginSection.style.display = 'block';
+                adminSection.style.display = 'none';
             }
-        });
+        }
 
         // Login functionality
         document.getElementById('loginSubmit').addEventListener('click', () => {
@@ -712,28 +653,19 @@
             if (username === 'admin' && password === 'password') {
                 isLoggedIn = true;
                 localStorage.setItem('isLoggedIn', 'true');
-                hideLoginModal();
-                // Open admin panel after login
-                const panel = document.getElementById('adminPanel');
-                const textarea = document.getElementById('exportTextarea');
-                textarea.value = JSON.stringify(videoLinks, null, 2);
-                panel.style.display = 'block';
+                updateLoginSection();
                 populateTables(); // Refresh to show Direct buttons
             } else {
                 alert('Invalid credentials');
             }
         });
 
-        // Admin panel functionality
+        // Logout functionality
         document.getElementById('logoutBtn').addEventListener('click', () => {
             isLoggedIn = false;
             localStorage.removeItem('isLoggedIn');
-            document.getElementById('adminPanel').style.display = 'none';
+            updateLoginSection();
             populateTables(); // Refresh to hide Direct buttons
-        });
-
-        document.getElementById('closePanel').addEventListener('click', () => {
-            document.getElementById('adminPanel').style.display = 'none';
         });
 
         document.getElementById('exportBtn').addEventListener('click', () => {
@@ -747,18 +679,6 @@
             URL.revokeObjectURL(url);
         });
 
-        // Close modal/panel on outside click
-        document.addEventListener('click', (e) => {
-            const modal = document.getElementById('loginModal');
-            const panel = document.getElementById('adminPanel');
-            if (e.target === modal) {
-                hideLoginModal();
-            }
-            if (e.target === panel) {
-                panel.style.display = 'none';
-            }
-        });
-
         document.getElementById('refreshButton').addEventListener('click', populateTables);
         document.getElementById('modeButton').addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
@@ -767,6 +687,7 @@
 
         // Initialize
         loadVideoLinks().then(() => {
+            updateLoginSection();
             populateTables();
         });
     </script>
