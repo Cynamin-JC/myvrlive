@@ -153,7 +153,7 @@
             background-color: #2e7d32;
         }
 
-        #refreshButton, #modeButton, #loginButton {
+        #refreshButton, #modeButton {
             position: fixed;
             bottom: 20px;
             padding: 10px;
@@ -168,13 +168,26 @@
             left: 30px;
         }
 
-        #loginButton {
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
         #modeButton {
             right: 30px;
+        }
+
+        #adminButton {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1500;
+        }
+
+        #adminButton:hover {
+            background: #306dc5;
         }
 
         /* Login Modal */
@@ -188,7 +201,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            z-index: 1600;
         }
 
         #loginModal.hidden {
@@ -228,29 +241,39 @@
             background: #306dc5;
         }
 
-        /* Admin UI */
-        #adminUI {
-            display: none;
-            margin-bottom: 20px;
-            padding: 20px;
+        /* Admin Panel */
+        #adminPanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: #2e2e2e;
+            border: 2px solid #4285f4;
             border-radius: 8px;
-            width: 90%;
-            margin: 20px auto;
+            padding: 20px;
+            width: 400px;
+            z-index: 1600;
+            display: none;
         }
 
-        body.light-mode #adminUI {
+        body.light-mode #adminPanel {
             background: #fff;
+            border-color: #007AFF;
         }
 
-        #adminUI input {
-            padding: 8px;
-            margin: 5px;
+        #adminPanel h2 {
+            margin-top: 0;
+        }
+
+        #adminPanel textarea {
+            width: 100%;
+            height: 150px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            margin: 10px 0;
         }
 
-        #adminUI button {
+        #adminPanel button {
             padding: 8px 12px;
             background: #4285f4;
             color: #fff;
@@ -260,20 +283,8 @@
             margin: 5px;
         }
 
-        #adminUI button:hover {
+        #adminPanel button:hover {
             background: #306dc5;
-        }
-
-        #adminUI ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        #adminUI li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
         }
 
         /* Floating Online Users List */
@@ -374,19 +385,29 @@
     </style>
 </head>
 <body>
+    <button id="adminButton">Admin</button>
+
     <h1>Video Links & Stream Status</h1>
 
-    <!-- Admin UI (hidden by default) -->
-    <div id="adminUI">
+    <!-- Login Modal -->
+    <div id="loginModal">
+        <div class="modal-content">
+            <h2>Admin Login</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginSubmit">Login</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel">
         <h2>Admin Panel</h2>
-        <form id="addLinkForm">
-            <input type="text" id="linkName" placeholder="Link Name" required>
-            <input type="url" id="linkUrl" placeholder="Link URL" required>
-            <button type="submit">Add Link</button>
-        </form>
-        <h3>Current Links</h3>
-        <ul id="linkList"></ul>
+        <p>Current Links (for manual update to video-links.json):</p>
+        <textarea id="exportTextarea" readonly></textarea>
+        <button id="exportBtn">Download JSON</button>
         <button id="logoutBtn">Logout</button>
+        <button id="closePanel">Close</button>
+        <p><strong>To update video-links.json:</strong> Copy the JSON above, edit the file in your GitHub repo, paste, and commit.</p>
     </div>
 
     <div class="table-container">
@@ -412,19 +433,8 @@
         </table>
     </div>
 
-    <!-- Login Modal -->
-    <div id="loginModal">
-        <div class="modal-content">
-            <h2>Login</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <button id="loginSubmit">Login</button>
-        </div>
-    </div>
-
     <!-- Floating Buttons -->
     <button id="refreshButton">Refresh</button>
-    <button id="loginButton">Login</button>
     <button id="modeButton">Light Mode</button>
 
     <!-- Floating Online Users -->
@@ -448,7 +458,6 @@
             } else {
                 await fetchVideoLinks();
             }
-            if (isLoggedIn) renderAdminUI();
         }
 
         async function fetchVideoLinks() {
@@ -525,7 +534,7 @@
                     linkButton.setAttribute('data-video-src', video.url); // Added for floating video player
                     linkCell.appendChild(linkButton);
 
-                    // Add Direct button if status will be online (placeholder, updated later)
+                    // Add Direct button if status will be online and user is logged in (placeholder, updated later)
                     const directButton = document.createElement('a');
                     directButton.href = video.url;
                     directButton.target = '_blank';
@@ -613,9 +622,9 @@
         function updateStatusCell(isOnline, statusCell) {
             statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
             statusCell.textContent = isOnline ? 'Online' : 'Offline';
-            // Show/hide Direct button based on status
+            // Show/hide Direct button based on status and login
             if (statusCell.directButton) {
-                statusCell.directButton.style.display = isOnline ? 'inline-block' : 'none';
+                statusCell.directButton.style.display = (isOnline && isLoggedIn) ? 'inline-block' : 'none';
             }
             updateOnlineList();
         }
@@ -691,7 +700,7 @@
             }
         }
 
-        // Login functionality
+        // Show login modal
         function showLoginModal() {
             document.getElementById('loginModal').classList.remove('hidden');
         }
@@ -700,65 +709,73 @@
             document.getElementById('loginModal').classList.add('hidden');
         }
 
+        // Admin button functionality
+        document.getElementById('adminButton').addEventListener('click', () => {
+            if (isLoggedIn) {
+                const panel = document.getElementById('adminPanel');
+                const textarea = document.getElementById('exportTextarea');
+                textarea.value = JSON.stringify(videoLinks, null, 2);
+                panel.style.display = 'block';
+            } else {
+                showLoginModal();
+            }
+        });
+
+        // Login functionality
         document.getElementById('loginSubmit').addEventListener('click', () => {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            if (username === 'admin' && password === 'password') { // Predetermined credentials
+            if (username === 'admin' && password === 'password') {
                 isLoggedIn = true;
                 localStorage.setItem('isLoggedIn', 'true');
                 hideLoginModal();
-                renderAdminUI();
-                populateTables(); // Refresh to show changes
+                // Open admin panel after login
+                const panel = document.getElementById('adminPanel');
+                const textarea = document.getElementById('exportTextarea');
+                textarea.value = JSON.stringify(videoLinks, null, 2);
+                panel.style.display = 'block';
+                populateTables(); // Refresh to show Direct buttons
             } else {
                 alert('Invalid credentials');
             }
         });
 
-        function renderAdminUI() {
-            document.getElementById('adminUI').style.display = 'block';
-            const linkList = document.getElementById('linkList');
-            linkList.innerHTML = '';
-            videoLinks.forEach((link, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>${link.name} - ${link.url}</span><button onclick="removeLink(${index})">Remove</button>`;
-                linkList.appendChild(li);
-            });
-        }
-
-        function removeLink(index) {
-            videoLinks.splice(index, 1);
-            saveVideoLinks();
-            renderAdminUI();
-            populateTables();
-        }
-
-        document.getElementById('addLinkForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('linkName').value;
-            const url = document.getElementById('linkUrl').value;
-            videoLinks.push({ name, url });
-            saveVideoLinks();
-            renderAdminUI();
-            populateTables();
-            document.getElementById('linkName').value = '';
-            document.getElementById('linkUrl').value = '';
-        });
-
+        // Admin panel functionality
         document.getElementById('logoutBtn').addEventListener('click', () => {
             isLoggedIn = false;
             localStorage.removeItem('isLoggedIn');
-            document.getElementById('adminUI').style.display = 'none';
-            populateTables();
+            document.getElementById('adminPanel').style.display = 'none';
+            populateTables(); // Refresh to hide Direct buttons
+        });
+
+        document.getElementById('closePanel').addEventListener('click', () => {
+            document.getElementById('adminPanel').style.display = 'none';
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const data = JSON.stringify(videoLinks, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'video-links.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Close modal/panel on outside click
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('loginModal');
+            const panel = document.getElementById('adminPanel');
+            if (e.target === modal) {
+                hideLoginModal();
+            }
+            if (e.target === panel) {
+                panel.style.display = 'none';
+            }
         });
 
         document.getElementById('refreshButton').addEventListener('click', populateTables);
-        document.getElementById('loginButton').addEventListener('click', () => {
-            if (isLoggedIn) {
-                document.getElementById('logoutBtn').click(); // Logout if already logged in
-            } else {
-                showLoginModal();
-            }
-        });
         document.getElementById('modeButton').addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             document.getElementById('modeButton').textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
@@ -766,7 +783,6 @@
 
         // Initialize
         loadVideoLinks().then(() => {
-            if (!isLoggedIn) showLoginModal();
             populateTables();
         });
     </script>
