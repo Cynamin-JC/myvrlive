@@ -153,7 +153,7 @@
             background-color: #2e7d32;
         }
 
-        #refreshButton, #modeButton {
+        #refreshButton, #modeButton, #adminButton {
             position: fixed;
             bottom: 20px;
             padding: 10px;
@@ -168,26 +168,12 @@
             left: 30px;
         }
 
+        #adminButton {
+            left: 140px;
+        }
+
         #modeButton {
             right: 30px;
-        }
-
-        #adminButton {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background: #4285f4;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1500;
-        }
-
-        #adminButton:hover {
-            background: #306dc5;
         }
 
         /* Login Modal */
@@ -253,7 +239,7 @@
             padding: 20px;
             width: 400px;
             z-index: 1600;
-            display: none;
+            display: none; /* Always hidden by default */
         }
 
         body.light-mode #adminPanel {
@@ -385,8 +371,6 @@
     </style>
 </head>
 <body>
-    <button id="adminButton">Admin</button>
-
     <h1>Video Links & Stream Status</h1>
 
     <!-- Login Modal -->
@@ -435,6 +419,7 @@
 
     <!-- Floating Buttons -->
     <button id="refreshButton">Refresh</button>
+    <button id="adminButton">Admin</button>
     <button id="modeButton">Light Mode</button>
 
     <!-- Floating Online Users -->
@@ -484,7 +469,7 @@
                 try {
                     const batchResults = await Promise.race([
                         Promise.all(batchPromises),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Batch timeout')), 30000)) // 30-second timeout per batch
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Batch timeout')), 15000)) // 15-second timeout per batch
                     ]);
                     results.push(...batchResults);
                 } catch (error) {
@@ -570,7 +555,7 @@
                 });
             });
 
-            // Run all status checks in batches of 10 with 30-second timeout per batch
+            // Run all status checks in batches of 10 with 15-second timeout per batch
             await processInBatches(statusPromises.map(fn => fn()), 10);
         }
 
@@ -728,11 +713,6 @@
                 isLoggedIn = true;
                 localStorage.setItem('isLoggedIn', 'true');
                 hideLoginModal();
-                // Open admin panel after login
-                const panel = document.getElementById('adminPanel');
-                const textarea = document.getElementById('exportTextarea');
-                textarea.value = JSON.stringify(videoLinks, null, 2);
-                panel.style.display = 'block';
                 populateTables(); // Refresh to show Direct buttons
             } else {
                 alert('Invalid credentials');
