@@ -419,7 +419,7 @@
                         videoPlayer = document.createElement('div');
                         videoPlayer.id = 'floating-video-player';
                         videoPlayer.innerHTML = `
-                            <video id="floating-video" width="320" height="180" controls autoplay>
+                            <video id="floating-video" width="320" height="180" controls autoplay muted>
                                 <source src="" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
@@ -445,7 +445,7 @@
                         const sourceElement = videoElement.querySelector('source');
                         sourceElement.src = videoSrc;
                         videoElement.load();
-                        videoElement.play();
+                        videoElement.play().catch(err => console.error('Play failed:', err));
                     }
                 }
             });
