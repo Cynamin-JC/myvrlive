@@ -110,7 +110,7 @@
         }
 
         /* Bubble Button Styling for Links */
-        .link-button {
+        .link-button, .direct-button {
             display: inline-block;
             background-color: #4285f4;
             color: #fff;
@@ -120,20 +120,37 @@
             text-align: center;
             text-decoration: none;
             transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-right: 5px;
         }
 
-        .link-button:hover {
+        .link-button:hover, .direct-button:hover {
             background-color: #306dc5;
             transform: scale(1.05);
             text-decoration: none;
         }
 
-        body.light-mode .link-button {
+        .direct-button {
+            background-color: #34a853;
+        }
+
+        .direct-button:hover {
+            background-color: #2e7d32;
+        }
+
+        body.light-mode .link-button, body.light-mode .direct-button {
             background-color: #007AFF;
         }
 
-        body.light-mode .link-button:hover {
+        body.light-mode .link-button:hover, body.light-mode .direct-button:hover {
             background-color: #005BB5;
+        }
+
+        body.light-mode .direct-button {
+            background-color: #34a853;
+        }
+
+        body.light-mode .direct-button:hover {
+            background-color: #2e7d32;
         }
 
         #refreshButton, #modeButton, #loginButton {
@@ -158,6 +175,105 @@
 
         #modeButton {
             right: 30px;
+        }
+
+        /* Login Modal */
+        #loginModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #loginModal.hidden {
+            display: none;
+        }
+
+        #loginModal .modal-content {
+            background: #2e2e2e;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+        }
+
+        body.light-mode #loginModal .modal-content {
+            background: #fff;
+        }
+
+        #loginModal input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #loginModal button {
+            padding: 10px 20px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #loginModal button:hover {
+            background: #306dc5;
+        }
+
+        /* Admin UI */
+        #adminUI {
+            display: none;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #2e2e2e;
+            border-radius: 8px;
+            width: 90%;
+            margin: 20px auto;
+        }
+
+        body.light-mode #adminUI {
+            background: #fff;
+        }
+
+        #adminUI input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #adminUI button {
+            padding: 8px 12px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        #adminUI button:hover {
+            background: #306dc5;
+        }
+
+        #adminUI ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #adminUI li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
         }
 
         /* Floating Online Users List */
@@ -259,6 +375,20 @@
 </head>
 <body>
     <h1>Video Links & Stream Status</h1>
+
+    <!-- Admin UI (hidden by default) -->
+    <div id="adminUI">
+        <h2>Admin Panel</h2>
+        <form id="addLinkForm">
+            <input type="text" id="linkName" placeholder="Link Name" required>
+            <input type="url" id="linkUrl" placeholder="Link URL" required>
+            <button type="submit">Add Link</button>
+        </form>
+        <h3>Current Links</h3>
+        <ul id="linkList"></ul>
+        <button id="logoutBtn">Logout</button>
+    </div>
+
     <div class="table-container">
         <table>
             <thead>
@@ -282,6 +412,16 @@
         </table>
     </div>
 
+    <!-- Login Modal -->
+    <div id="loginModal">
+        <div class="modal-content">
+            <h2>Login</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginSubmit">Login</button>
+        </div>
+    </div>
+
     <!-- Floating Buttons -->
     <button id="refreshButton">Refresh</button>
     <button id="loginButton">Login</button>
@@ -297,17 +437,33 @@
 
     <script>
         let videoLinks = [];
+        let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         let isVideoLoading = false; // Global flag to prioritize video player over status checks
+
+        // Load links from localStorage or fetch from JSON
+        async function loadVideoLinks() {
+            const stored = localStorage.getItem('videoLinks');
+            if (stored) {
+                videoLinks = JSON.parse(stored);
+            } else {
+                await fetchVideoLinks();
+            }
+            if (isLoggedIn) renderAdminUI();
+        }
 
         async function fetchVideoLinks() {
             try {
                 const response = await fetch('video-links.json');
                 videoLinks = await response.json();
-                return videoLinks;
+                saveVideoLinks();
             } catch (error) {
                 console.error('Error fetching video links:', error);
-                return [];
+                videoLinks = [];
             }
+        }
+
+        function saveVideoLinks() {
+            localStorage.setItem('videoLinks', JSON.stringify(videoLinks));
         }
 
         // Process promises in batches to limit concurrency
@@ -322,8 +478,6 @@
         }
 
         async function populateTables() {
-            if (videoLinks.length === 0) await fetchVideoLinks();
-
             const leftTable = document.getElementById('leftTable');
             const rightTable = document.getElementById('rightTable');
             leftTable.innerHTML = '';
@@ -370,6 +524,16 @@
                     linkButton.className = 'link-button';
                     linkButton.setAttribute('data-video-src', video.url); // Added for floating video player
                     linkCell.appendChild(linkButton);
+
+                    // Add Direct button if status will be online (placeholder, updated later)
+                    const directButton = document.createElement('a');
+                    directButton.href = video.url;
+                    directButton.target = '_blank';
+                    directButton.textContent = 'Direct';
+                    directButton.className = 'direct-button';
+                    directButton.style.display = 'none'; // Hidden initially
+                    linkCell.appendChild(directButton);
+
                     row.appendChild(linkCell);
 
                     const statusCell = document.createElement('td');
@@ -378,6 +542,9 @@
                     row.appendChild(statusCell);
 
                     currentTable.appendChild(row);
+
+                    // Store reference to direct button for later
+                    statusCell.directButton = directButton;
 
                     // Collect promise for batched execution
                     statusPromises.push(() => checkVideoStatus(video.url, statusCell));
@@ -446,6 +613,10 @@
         function updateStatusCell(isOnline, statusCell) {
             statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
             statusCell.textContent = isOnline ? 'Online' : 'Offline';
+            // Show/hide Direct button based on status
+            if (statusCell.directButton) {
+                statusCell.directButton.style.display = isOnline ? 'inline-block' : 'none';
+            }
             updateOnlineList();
         }
 
@@ -520,16 +691,84 @@
             }
         }
 
+        // Login functionality
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function hideLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+
+        document.getElementById('loginSubmit').addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            if (username === 'admin' && password === 'password') { // Predetermined credentials
+                isLoggedIn = true;
+                localStorage.setItem('isLoggedIn', 'true');
+                hideLoginModal();
+                renderAdminUI();
+                populateTables(); // Refresh to show changes
+            } else {
+                alert('Invalid credentials');
+            }
+        });
+
+        function renderAdminUI() {
+            document.getElementById('adminUI').style.display = 'block';
+            const linkList = document.getElementById('linkList');
+            linkList.innerHTML = '';
+            videoLinks.forEach((link, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${link.name} - ${link.url}</span><button onclick="removeLink(${index})">Remove</button>`;
+                linkList.appendChild(li);
+            });
+        }
+
+        function removeLink(index) {
+            videoLinks.splice(index, 1);
+            saveVideoLinks();
+            renderAdminUI();
+            populateTables();
+        }
+
+        document.getElementById('addLinkForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('linkName').value;
+            const url = document.getElementById('linkUrl').value;
+            videoLinks.push({ name, url });
+            saveVideoLinks();
+            renderAdminUI();
+            populateTables();
+            document.getElementById('linkName').value = '';
+            document.getElementById('linkUrl').value = '';
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            isLoggedIn = false;
+            localStorage.removeItem('isLoggedIn');
+            document.getElementById('adminUI').style.display = 'none';
+            populateTables();
+        });
+
         document.getElementById('refreshButton').addEventListener('click', populateTables);
         document.getElementById('loginButton').addEventListener('click', () => {
-            alert('Login functionality not implemented yet'); // Placeholder for login logic
+            if (isLoggedIn) {
+                document.getElementById('logoutBtn').click(); // Logout if already logged in
+            } else {
+                showLoginModal();
+            }
         });
         document.getElementById('modeButton').addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             document.getElementById('modeButton').textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
         });
 
-        populateTables();
+        // Initialize
+        loadVideoLinks().then(() => {
+            if (!isLoggedIn) showLoginModal();
+            populateTables();
+        });
     </script>
 <script src="static/js/floatingVideoPlayer.js" defer></script>
         <script>
