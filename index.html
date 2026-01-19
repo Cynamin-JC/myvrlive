@@ -713,6 +713,11 @@
                 isLoggedIn = true;
                 localStorage.setItem('isLoggedIn', 'true');
                 hideLoginModal();
+                // Open admin panel after login
+                const panel = document.getElementById('adminPanel');
+                const textarea = document.getElementById('exportTextarea');
+                textarea.value = JSON.stringify(videoLinks, null, 2);
+                panel.style.display = 'block';
                 populateTables(); // Refresh to show Direct buttons
             } else {
                 alert('Invalid credentials');
