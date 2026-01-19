@@ -475,6 +475,19 @@
             let dragOffsetX = 0;
             let dragOffsetY = 0;
 
+            // Snap points: top-left, top-right, above online list, above bottom buttons
+            const getSnapPoints = () => {
+                const onlineUsers = document.getElementById('onlineUsers');
+                const onlineUsersRect = onlineUsers.getBoundingClientRect();
+                return [
+                    { left: 20, top: 20 }, // Top left
+                    { right: 20, top: 20 }, // Top right
+                    { left: 20, top: onlineUsersRect.top - 10 }, // Above online list (dynamic height)
+                    { left: 20, bottom: 80 }, // Above refresh button
+                    { right: 20, bottom: 80 } // Above mode button
+                ];
+            };
+
             document.body.addEventListener('click', (event) => {
                 const link = event.target;
 
@@ -518,6 +531,36 @@
                         });
 
                         document.addEventListener('mouseup', () => {
+                            if (isDragging) {
+                                // Snap to nearest point if within 50px
+                                const playerRect = videoPlayer.getBoundingClientRect();
+                                const playerCenterX = playerRect.left + playerRect.width / 2;
+                                const playerCenterY = playerRect.top + playerRect.height / 2;
+                                const snapPoints = getSnapPoints();
+                                let closestPoint = null;
+                                let minDistance = 50; // Snap threshold
+
+                                snapPoints.forEach(point => {
+                                    let pointX, pointY;
+                                    if (point.left !== undefined) pointX = point.left;
+                                    else pointX = window.innerWidth - point.right;
+                                    if (point.top !== undefined) pointY = point.top;
+                                    else pointY = window.innerHeight - point.bottom;
+
+                                    const distance = Math.sqrt((playerCenterX - pointX) ** 2 + (playerCenterY - pointY) ** 2);
+                                    if (distance < minDistance) {
+                                        minDistance = distance;
+                                        closestPoint = point;
+                                    }
+                                });
+
+                                if (closestPoint) {
+                                    if (closestPoint.left !== undefined) videoPlayer.style.left = `${closestPoint.left}px`;
+                                    else videoPlayer.style.right = `${closestPoint.right}px`;
+                                    if (closestPoint.top !== undefined) videoPlayer.style.top = `${closestPoint.top}px`;
+                                    else videoPlayer.style.bottom = `${closestPoint.bottom}px`;
+                                }
+                            }
                             isDragging = false;
                             videoPlayer.style.cursor = 'move';
                         });
