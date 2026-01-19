@@ -136,7 +136,7 @@
             background-color: #005BB5;
         }
 
-        #refreshButton, #modeButton {
+        #refreshButton, #modeButton, #loginButton {
             position: fixed;
             bottom: 20px;
             padding: 10px;
@@ -149,6 +149,11 @@
 
         #refreshButton {
             left: 30px;
+        }
+
+        #loginButton {
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         #modeButton {
@@ -279,6 +284,7 @@
 
     <!-- Floating Buttons -->
     <button id="refreshButton">Refresh</button>
+    <button id="loginButton">Login</button>
     <button id="modeButton">Light Mode</button>
 
     <!-- Floating Online Users -->
@@ -515,6 +521,9 @@
         }
 
         document.getElementById('refreshButton').addEventListener('click', populateTables);
+        document.getElementById('loginButton').addEventListener('click', () => {
+            alert('Login functionality not implemented yet'); // Placeholder for login logic
+        });
         document.getElementById('modeButton').addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             document.getElementById('modeButton').textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
