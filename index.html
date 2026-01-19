@@ -237,7 +237,7 @@
 
     <script>
         let videoLinks = [];
-        let isVideoLoading = false; // Global flag to prioritize video player over status UI updates
+        let isVideoLoading = false; // Global flag to prioritize video player over status checks
 
         async function fetchVideoLinks() {
             try {
@@ -365,12 +365,6 @@
         }
 
         function updateStatusCell(isOnline, statusCell) {
-            // Defer UI update if video is loading to prioritize video player
-            if (isVideoLoading) {
-                setTimeout(() => updateStatusCell(isOnline, statusCell), 100);
-                return;
-            }
-
             statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
             statusCell.textContent = isOnline ? 'Online' : 'Offline';
             updateOnlineList();
