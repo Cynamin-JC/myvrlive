@@ -304,20 +304,6 @@
             }
         }
 
-        // Utility function for fetch with timeout (for API calls only)
-        async function fetchWithTimeout(url, options = {}, timeout = 5000) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-            try {
-                const response = await fetch(url, { ...options, signal: controller.signal });
-                clearTimeout(timeoutId);
-                return response;
-            } catch (error) {
-                clearTimeout(timeoutId);
-                throw error;
-            }
-        }
-
         async function populateTables() {
             if (videoLinks.length === 0) await fetchVideoLinks();
 
@@ -432,7 +418,7 @@
                     const isLive = await checkKickStatus(username);
                     updateStatusCell(isLive, statusCell);
                 } else {
-                    checkVideoLink(url, statusCell);
+                    await checkVideoLink(url, statusCell);
                 }
             } catch (error) {
                 console.error(`Error checking status for ${url}:`, error);
@@ -446,11 +432,39 @@
             updateOnlineList();
         }
 
-        function checkVideoLink(url, statusCell) {
-          const video = document.createElement('video');
-          video.onloadeddata = () => updateStatusCell(true, statusCell);
-          video.onerror = () => updateStatusCell(false, statusCell);
-          video.src = url;
+        async function checkVideoLink(url, statusCell) {
+            return new Promise((resolve) => {
+                const video = document.createElement('video');
+                let resolved = false;
+
+                const timeout = setTimeout(() => {
+                    if (!resolved) {
+                        resolved = true;
+                        updateStatusCell(false, statusCell); // Timeout: assume offline
+                        resolve();
+                    }
+                }, 3000); // 3-second timeout for live streams
+
+                video.onloadeddata = () => {
+                    if (!resolved) {
+                        clearTimeout(timeout);
+                        resolved = true;
+                        updateStatusCell(true, statusCell); // Metadata loaded: online
+                        resolve();
+                    }
+                };
+
+                video.onerror = () => {
+                    if (!resolved) {
+                        clearTimeout(timeout);
+                        resolved = true;
+                        updateStatusCell(false, statusCell); // Error: offline
+                        resolve();
+                    }
+                };
+
+                video.src = url;
+            });
         }
 
         async function checkTwitchStatus(username) {
@@ -473,6 +487,20 @@
             console.error(`Error checking Kick status: ${username}`, error);
             return false;
           }
+        }
+
+        // Utility function for fetch with timeout (for API calls only)
+        async function fetchWithTimeout(url, options = {}, timeout = 5000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                throw error;
+            }
         }
 
         document.getElementById('refreshButton').addEventListener('click', populateTables);
