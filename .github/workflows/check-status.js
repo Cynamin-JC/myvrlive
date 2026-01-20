@@ -3,6 +3,9 @@ const http = require('http');
 const fs = require('fs');
 const { URL } = require('url');
 
+// Constants
+const TWITCH_LIVE_INDICATOR = '"isLiveBroadcast":true';
+
 // Read video-links.json
 const videoLinksPath = './video-links.json';
 const videoLinks = JSON.parse(fs.readFileSync(videoLinksPath, 'utf8'));
@@ -69,14 +72,14 @@ async function checkTwitchStatus(username) {
         res.on('data', (chunk) => {
           data += chunk;
           // Early exit if we find the indicator
-          if (data.includes('"isLiveBroadcast":true')) {
+          if (data.includes(TWITCH_LIVE_INDICATOR)) {
             res.destroy();
             resolve(true);
           }
         });
         
         res.on('end', () => {
-          resolve(data.includes('"isLiveBroadcast":true'));
+          resolve(data.includes(TWITCH_LIVE_INDICATOR));
         });
       }).on('error', () => {
         resolve(false);
@@ -161,9 +164,9 @@ async function processInBatches(items, batchSize = 10) {
     );
     results.push(...batchResults);
     
-    // Small delay between batches to be respectful to servers
+    // Delay between batches to be respectful to servers and avoid rate limiting
     if (i + batchSize < items.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
   return results;
