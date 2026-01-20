@@ -46,7 +46,11 @@ function makeRequest(url, timeout = 5000) {
   });
 }
 
-// Check video link status (for .mp4 files)
+/**
+ * Check if a video link is accessible via HEAD request
+ * @param {string} url - The video URL to check
+ * @returns {Promise<boolean>} True if the video is accessible (status 200 or 206), false otherwise
+ */
 async function checkVideoLink(url) {
   try {
     return await makeRequest(url);
@@ -56,7 +60,11 @@ async function checkVideoLink(url) {
   }
 }
 
-// Check Twitch status
+/**
+ * Check if a Twitch stream is live by parsing the channel page HTML
+ * @param {string} username - The Twitch username to check
+ * @returns {Promise<boolean>} True if the stream is live, false otherwise
+ */
 async function checkTwitchStatus(username) {
   try {
     const url = `https://www.twitch.tv/${username}`;
@@ -93,7 +101,11 @@ async function checkTwitchStatus(username) {
   }
 }
 
-// Check Kick status
+/**
+ * Check if a Kick stream is live via the Kick API
+ * @param {string} username - The Kick username to check
+ * @returns {Promise<boolean>} True if the stream is live, false otherwise
+ */
 async function checkKickStatus(username) {
   try {
     const url = `https://kick.com/api/v2/channels/${username}`;
