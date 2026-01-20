@@ -391,7 +391,6 @@
 
         let videoLinks = [];
         let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        let isVideoLoading = false; // Global flag to prioritize video player over status checks
         let isPopulating = false; // Flag to prevent overlapping populateTables calls
 
         // Load links from localStorage or fetch from JSON
@@ -419,27 +418,6 @@
             localStorage.setItem('videoLinks', JSON.stringify(videoLinks));
         }
 
-        // Process promises in batches to limit concurrency, with timeout per batch
-        async function processInBatches(promises, batchSize = 10) {
-            const results = [];
-            for (let i = 0; i < promises.length; i += batchSize) {
-                const batch = promises.slice(i, i + batchSize);
-                const batchPromises = batch.map(fn => fn());
-                try {
-                    const batchResults = await Promise.race([
-                        Promise.all(batchPromises),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Batch timeout')), 15000)) // 15-second timeout per batch
-                    ]);
-                    results.push(...batchResults);
-                } catch (error) {
-                    console.error('Batch timed out, skipping to next:', error);
-                    // Mark remaining as offline or skip
-                    batch.forEach(() => results.push(false));
-                }
-            }
-            return results;
-        }
-
         async function populateTables() {
             if (isPopulating) return; // Prevent overlapping calls
             isPopulating = true;
@@ -452,11 +430,6 @@
             videoLinks.sort((a, b) => a.name.localeCompare(b.name));
             const midIndex = Math.ceil(videoLinks.length / 2);
             const columns = [videoLinks.slice(0, midIndex), videoLinks.slice(midIndex)];
-
-            updateOnlineList();
-
-            // Collect all status check promises for batched execution
-            const statusPromises = [];
 
             columns.forEach((group, index) => {
                 const currentTable = index === 0 ? leftTable : rightTable;
@@ -491,35 +464,36 @@
                     linkButton.setAttribute('data-video-src', video.url); // Added for floating video player
                     linkCell.appendChild(linkButton);
 
-                    // Add Direct button if status will be online and user is logged in (placeholder, updated later)
+                    // Add Direct button if status is online and user is logged in
                     const directButton = document.createElement('a');
                     directButton.href = video.url;
                     directButton.target = '_blank';
                     directButton.textContent = 'Direct';
                     directButton.className = 'direct-button';
-                    directButton.style.display = 'none'; // Hidden initially
                     linkCell.appendChild(directButton);
 
                     row.appendChild(linkCell);
 
                     const statusCell = document.createElement('td');
-                    statusCell.className = 'status checking';
-                    statusCell.textContent = 'Checking...';
                     row.appendChild(statusCell);
 
                     currentTable.appendChild(row);
 
-                    // Store reference to direct button for later
+                    // Store reference to direct button
                     statusCell.directButton = directButton;
 
-                    // Collect promise for batched execution
-                    statusPromises.push(() => checkVideoStatus(video.url, statusCell));
+                    // Use pre-checked status from JSON, default to 'checking' if not available
+                    const status = video.status || 'checking';
+                    const isOnline = status === 'online';
+                    statusCell.className = `status ${status}`;
+                    statusCell.textContent = status === 'online' ? 'Online' : status === 'offline' ? 'Offline' : 'Checking...';
+                    
+                    // Show/hide Direct button based on status and login
+                    directButton.style.display = (isOnline && isLoggedIn) ? 'inline-block' : 'none';
                 });
             });
 
-            // Run all status checks in batches of 10 with 15-second timeout per batch
-            await processInBatches(statusPromises.map(fn => fn()), 10);
-
+            updateOnlineList();
             isPopulating = false; // Allow new calls
         }
 
@@ -550,95 +524,6 @@
 
                     onlineList.appendChild(listItem);
                 });
-            }
-        }
-
-        async function checkVideoStatus(url, statusCell) {
-            try {
-                if (url.includes('twitch.tv')) {
-                    const username = url.split('twitch.tv/')[1];
-                    const isLive = await checkTwitchStatus(username);
-                    updateStatusCell(isLive, statusCell);
-                } else if (url.includes('kick.com')) {
-                    const username = url.split('kick.com/')[1];
-                    const isLive = await checkKickStatus(username);
-                    updateStatusCell(isLive, statusCell);
-                } else {
-                    const isOnline = await checkVideoLink(url);
-                    updateStatusCell(isOnline, statusCell);
-                }
-            } catch (error) {
-                console.error(`Error checking status for ${url}:`, error);
-                updateStatusCell(false, statusCell);
-            }
-        }
-
-        function updateStatusCell(isOnline, statusCell) {
-            statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
-            statusCell.textContent = isOnline ? 'Online' : 'Offline';
-            // Show/hide Direct button based on status and login
-            if (statusCell.directButton) {
-                statusCell.directButton.style.display = (isOnline && isLoggedIn) ? 'inline-block' : 'none';
-            }
-            updateOnlineList();
-        }
-
-        async function checkVideoLink(url) {
-            return new Promise((resolve) => {
-                const video = document.createElement('video');
-                let resolved = false;
-
-                video.onloadeddata = () => {
-                    if (!resolved) {
-                        resolved = true;
-                        resolve(true); // Metadata loaded: online
-                    }
-                };
-
-                video.onerror = () => {
-                    if (!resolved) {
-                        resolved = true;
-                        resolve(false); // Error: offline
-                    }
-                };
-
-                video.src = url;
-            });
-        }
-
-        async function checkTwitchStatus(username) {
-          try {
-            const response = await fetchWithTimeout(`https://www.twitch.tv/${username}`, {}, 5000);
-            const html = await response.text();
-            return html.includes(`"isLiveBroadcast":true`);
-          } catch (error) {
-            console.error(`Error checking Twitch status: ${username}`, error);
-            return false;
-          }
-        }
-
-        async function checkKickStatus(username) {
-          try {
-            const response = await fetchWithTimeout(`https://kick.com/api/v2/channels/${username}`, {}, 5000);
-            const data = await response.json();
-            return data?.livestream?.is_live ?? false;
-          } catch (error) {
-            console.error(`Error checking Kick status: ${username}`, error);
-            return false;
-          }
-        }
-
-        // Utility function for fetch with timeout
-        async function fetchWithTimeout(url, options = {}, timeout = 5000) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-            try {
-                const response = await fetch(url, { ...options, signal: controller.signal });
-                clearTimeout(timeoutId);
-                return response;
-            } catch (error) {
-                clearTimeout(timeoutId);
-                throw error;
             }
         }
 
@@ -722,8 +607,6 @@
                     event.preventDefault();
                     const videoSrc = link.getAttribute('data-video-src');
 
-                    isVideoLoading = true; // Set flag to prioritize video player over status checks
-
                     let videoPlayer = document.getElementById('floating-video-player');
                     if (!videoPlayer) {
                         videoPlayer = document.createElement('div');
@@ -773,7 +656,6 @@
                         // Close player
                         document.getElementById('close-video-player').addEventListener('click', () => {
                             videoPlayer.remove();
-                            isVideoLoading = false; // Reset flag when player closes
                         });
                     }
 
@@ -784,9 +666,6 @@
                         videoElement.load();
                         videoElement.play().catch(err => {
                             console.error('Play failed:', err);
-                            isVideoLoading = false; // Reset on error
-                        }).then(() => {
-                            isVideoLoading = false; // Reset after successful play
                         });
                     }
                 }
