@@ -299,6 +299,19 @@
             min-height: 36px;
         }
 
+        #mostWatchedPanel .most-watched-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        #mostWatchedPanel .status {
+            font-size: 12px;
+            padding: 6px 10px;
+            align-self: flex-start;
+        }
+
         .left-column {
             display: flex;
             flex-direction: column;
@@ -521,6 +534,9 @@
         const THEME_STORAGE_KEY = 'preferredTheme';
         const WATCH_COUNTS_KEY = 'watchCounts';
 
+        let statusCache = new Map();
+        let statusCellMap = new Map();
+
         function getWatchCounts() {
             const stored = localStorage.getItem(WATCH_COUNTS_KEY);
             return stored ? JSON.parse(stored) : {};
@@ -538,15 +554,48 @@
             renderMostWatched();
         }
 
-        function renderMostWatched() {
-            const list = document.getElementById('mostWatchedList');
+        function getRankedMostWatched() {
             const counts = getWatchCounts();
-
-            const ranked = videoLinks
+            return videoLinks
                 .map(video => ({ video, count: counts[video.url] || 0 }))
                 .filter(item => item.count > 0)
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 5);
+        }
+
+        function getStatusState(url) {
+            return statusCache.get(url) ?? 'checking';
+        }
+
+        function setStatusChecking(url, shouldRender = true) {
+            statusCache.set(url, 'checking');
+            if (shouldRender) {
+                renderMostWatched();
+            }
+        }
+
+        function setStatusState(url, isOnline, shouldRender = true) {
+            statusCache.set(url, isOnline ? 'online' : 'offline');
+            if (shouldRender) {
+                renderMostWatched();
+            }
+        }
+
+        function registerStatusCell(url, statusCell) {
+            if (!statusCellMap.has(url)) {
+                statusCellMap.set(url, []);
+            }
+            statusCellMap.get(url).push(statusCell);
+        }
+
+        function applyStatusToCells(url, isOnline) {
+            const cells = statusCellMap.get(url) || [];
+            cells.forEach(cell => updateStatusCell(isOnline, cell));
+        }
+
+        function renderMostWatched() {
+            const list = document.getElementById('mostWatchedList');
+            const ranked = getRankedMostWatched();
 
             list.innerHTML = '';
 
@@ -559,8 +608,24 @@
 
             ranked.forEach(({ video, count }) => {
                 const item = document.createElement('li');
+
+                const info = document.createElement('div');
+                info.className = 'most-watched-info';
+
                 const label = document.createElement('span');
                 label.textContent = `${video.name} (${count})`;
+
+                const statusBadge = document.createElement('span');
+                const state = getStatusState(video.url);
+                statusBadge.className = `status ${state}`;
+                statusBadge.textContent = state === 'online'
+                    ? 'Online'
+                    : state === 'offline'
+                        ? 'Offline'
+                        : 'Checking...';
+
+                info.appendChild(label);
+                info.appendChild(statusBadge);
 
                 const watchButton = document.createElement('a');
                 watchButton.href = video.url;
@@ -573,7 +638,7 @@
                     loadFloatingVideo(video.url);
                 };
 
-                item.appendChild(label);
+                item.appendChild(info);
                 item.appendChild(watchButton);
                 list.appendChild(item);
             });
@@ -735,6 +800,9 @@
             if (isPopulating) return;
             isPopulating = true;
 
+            statusCache = new Map();
+            statusCellMap = new Map();
+
             const leftTable = document.getElementById('leftTable');
             const rightTable = document.getElementById('rightTable');
             leftTable.innerHTML = '';
@@ -786,15 +854,18 @@
                     const statusCell = document.createElement('td');
                     statusCell.className = 'status checking';
                     statusCell.textContent = 'Checking...';
+                    statusCell.dataset.url = video.url;
                     row.appendChild(statusCell);
 
                     currentTable.appendChild(row);
 
                     statusCell.directButton = directButton;
-                    statusTasks.push(() => checkVideoStatus(video.url, statusCell));
+                    registerStatusCell(video.url, statusCell);
+                    statusTasks.push(() => checkAndUpdateStatus(video.url, statusCell));
                 });
             });
 
+            await refreshMostWatchedStatuses();
             await processInBatches(statusTasks, 10);
 
             isPopulating = false;
@@ -834,23 +905,50 @@
             }
         }
 
-        async function checkVideoStatus(url, statusCell) {
+        async function refreshMostWatchedStatuses() {
+            const ranked = getRankedMostWatched();
+
+            if (ranked.length === 0) {
+                return;
+            }
+
+            ranked.forEach(({ video }) => setStatusChecking(video.url, false));
+            renderMostWatched();
+
+            const tasks = ranked.map(({ video }) => async () => {
+                const isOnline = await getVideoStatus(video.url);
+                setStatusState(video.url, isOnline, false);
+                applyStatusToCells(video.url, isOnline);
+                return isOnline;
+            });
+
+            await processInBatches(tasks, 10);
+            renderMostWatched();
+        }
+
+        async function getVideoStatus(url) {
+            if (url.includes('twitch.tv')) {
+                const username = url.split('twitch.tv/')[1];
+                return await checkTwitchStatus(username);
+            }
+
+            if (url.includes('kick.com')) {
+                const username = url.split('kick.com/')[1];
+                return await checkKickStatus(username);
+            }
+
+            return await checkVideoLink(url);
+        }
+
+        async function checkAndUpdateStatus(url, statusCell) {
             try {
-                if (url.includes('twitch.tv')) {
-                    const username = url.split('twitch.tv/')[1];
-                    const isLive = await checkTwitchStatus(username);
-                    updateStatusCell(isLive, statusCell);
-                } else if (url.includes('kick.com')) {
-                    const username = url.split('kick.com/')[1];
-                    const isLive = await checkKickStatus(username);
-                    updateStatusCell(isLive, statusCell);
-                } else {
-                    const isOnline = await checkVideoLink(url);
-                    updateStatusCell(isOnline, statusCell);
-                }
+                const isOnline = await getVideoStatus(url);
+                updateStatusCell(isOnline, statusCell);
+                setStatusState(url, isOnline);
             } catch (error) {
                 console.error(`Error checking status for ${url}:`, error);
                 updateStatusCell(false, statusCell);
+                setStatusState(url, false);
             }
         }
 
