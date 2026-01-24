@@ -253,7 +253,8 @@
             outline: none;
         }
 
-        #onlineUsers {
+        #onlineUsers,
+        #mostWatchedPanel {
             background: var(--bg-secondary);
             color: var(--text-primary);
             border-radius: var(--border-radius);
@@ -264,20 +265,23 @@
             height: fit-content;
         }
 
-        #onlineUsers h3 {
+        #onlineUsers h3,
+        #mostWatchedPanel h3 {
             margin: 0 0 10px;
             font-size: 16px;
             border-bottom: 1px solid var(--text-secondary);
             padding-bottom: 5px;
         }
 
-        #onlineUsers ul {
+        #onlineUsers ul,
+        #mostWatchedPanel ul {
             list-style: none;
             padding: 0;
             margin: 0;
         }
 
-        #onlineUsers li {
+        #onlineUsers li,
+        #mostWatchedPanel li {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -288,7 +292,8 @@
             background: var(--bg-tertiary);
         }
 
-        #onlineUsers .link-button {
+        #onlineUsers .link-button,
+        #mostWatchedPanel .link-button {
             font-size: 12px;
             padding: 8px 12px;
             min-height: 36px;
@@ -436,10 +441,18 @@
                 </ul>
             </div>
 
+            <div id="mostWatchedPanel">
+                <h3>Most Watched</h3>
+                <ul id="mostWatchedList">
+                    <li>No views yet</li>
+                </ul>
+            </div>
+
             <div class="left-bottom-panel">
                 <div class="left-bottom-actions">
                     <button id="refreshButton">Refresh</button>
                     <div id="refreshTimer">Next refresh in 05:00</div>
+                    <button id="clearMostWatched">Clear Most Watched</button>
                     <button id="modeButton">Light Mode</button>
                     <button id="toggleAdmin">Toggle Admin Panel</button>
                 </div>
@@ -504,6 +517,79 @@
         let refreshTimerId = null;
         let refreshCountdownId = null;
         let nextRefreshAt = Date.now() + AUTO_REFRESH_INTERVAL_MS;
+
+        const THEME_STORAGE_KEY = 'preferredTheme';
+        const WATCH_COUNTS_KEY = 'watchCounts';
+
+        function getWatchCounts() {
+            const stored = localStorage.getItem(WATCH_COUNTS_KEY);
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        function saveWatchCounts(counts) {
+            localStorage.setItem(WATCH_COUNTS_KEY, JSON.stringify(counts));
+        }
+
+        function incrementWatchCount(video) {
+            const counts = getWatchCounts();
+            const key = video.url;
+            counts[key] = (counts[key] || 0) + 1;
+            saveWatchCounts(counts);
+            renderMostWatched();
+        }
+
+        function renderMostWatched() {
+            const list = document.getElementById('mostWatchedList');
+            const counts = getWatchCounts();
+
+            const ranked = videoLinks
+                .map(video => ({ video, count: counts[video.url] || 0 }))
+                .filter(item => item.count > 0)
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5);
+
+            list.innerHTML = '';
+
+            if (ranked.length === 0) {
+                const empty = document.createElement('li');
+                empty.textContent = 'No views yet';
+                list.appendChild(empty);
+                return;
+            }
+
+            ranked.forEach(({ video, count }) => {
+                const item = document.createElement('li');
+                const label = document.createElement('span');
+                label.textContent = `${video.name} (${count})`;
+
+                const watchButton = document.createElement('a');
+                watchButton.href = video.url;
+                watchButton.target = '_blank';
+                watchButton.textContent = 'Watch';
+                watchButton.className = 'link-button';
+                watchButton.onclick = (e) => {
+                    e.preventDefault();
+                    incrementWatchCount(video);
+                    loadFloatingVideo(video.url);
+                };
+
+                item.appendChild(label);
+                item.appendChild(watchButton);
+                list.appendChild(item);
+            });
+        }
+
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+
+            document.getElementById('modeButton').textContent =
+                document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
+        }
 
         async function loadVideoLinks() {
             const stored = localStorage.getItem('videoLinks');
@@ -659,6 +745,7 @@
             const columns = [videoLinks.slice(0, midIndex), videoLinks.slice(midIndex)];
 
             updateOnlineList();
+            renderMostWatched();
 
             const statusTasks = [];
 
@@ -681,6 +768,7 @@
                     linkButton.setAttribute('data-video-src', video.url);
                     linkButton.onclick = (e) => {
                         e.preventDefault();
+                        incrementWatchCount(video);
                         loadFloatingVideo(video.url);
                     };
                     linkCell.appendChild(linkButton);
@@ -734,9 +822,9 @@
                     watchButton.target = '_blank';
                     watchButton.textContent = 'Watch';
                     watchButton.className = 'link-button';
-                    watchButton.setAttribute('data-video-src', videoLink);
                     watchButton.onclick = (e) => {
                         e.preventDefault();
+                        incrementWatchCount({ name, url: videoLink });
                         loadFloatingVideo(videoLink);
                     };
                     listItem.appendChild(watchButton);
@@ -889,12 +977,19 @@
             startAutoRefresh();
         });
 
+        document.getElementById('clearMostWatched').addEventListener('click', () => {
+            localStorage.removeItem(WATCH_COUNTS_KEY);
+            renderMostWatched();
+        });
+
         document.getElementById('modeButton').addEventListener('click', () => {
-            document.body.classList.toggle('light-mode');
-            document.getElementById('modeButton').textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem(THEME_STORAGE_KEY, isLight ? 'light' : 'dark');
+            document.getElementById('modeButton').textContent = isLight ? 'Dark Mode' : 'Light Mode';
         });
 
         loadVideoLinks().then(() => {
+            applySavedTheme();
             populateTables();
             startAutoRefresh();
         });
