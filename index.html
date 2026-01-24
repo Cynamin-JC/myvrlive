@@ -338,57 +338,58 @@
             }
         }
 
-        /* Floating Video Player */
+        /* Floating Video Player - Reverted to original styles */
         #floating-video-player {
             position: fixed;
             bottom: 20px;
             right: 20px;
             width: 320px;
-            min-width: 200px;
+            min-width: 200px; /* Minimum size to prevent unusable resize */
             min-height: 150px;
-            max-width: 90vw; /* Prevent overflow on small screens */
-            max-height: 50vh;
-            background: var(--bg-secondary);
-            border: 2px solid var(--color-primary);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            background: #2e2e2e;
+            border: 2px solid #4285f4;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
             padding: 10px;
-            z-index: 1001; /* Higher than online users */
-            resize: both;
-            overflow: hidden;
-            transition: var(--transition);
+            z-index: 1000;
+            resize: both; /* Enable resizing */
+            overflow: hidden; /* Prevent overflow during resize */
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        body.light-mode #floating-video-player {
+            background: #fff;
+            border-color: #007AFF;
         }
 
         #floating-video-player video {
             width: 100%;
-            height: auto;
-            object-fit: contain;
+            height: auto; /* Allow height to adjust */
+            object-fit: contain; /* Scale video proportionally without cropping */
             border-radius: 4px;
         }
 
         #floating-video-player button {
             margin-top: 5px;
-            padding: 6px 10px;
-            background: var(--color-primary);
+            padding: 5px 10px;
+            background: #4285f4;
             color: #fff;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
-            transition: var(--transition);
         }
 
         #floating-video-player button:hover {
-            background: var(--color-primary-hover);
+            background: #306dc5;
         }
 
-        /* Responsive: Adjust video player on small screens */
-        @media (max-width: 768px) {
-            #floating-video-player {
-                width: 90vw;
-                right: 5%;
-                bottom: 20px;
-            }
+        body.light-mode #floating-video-player button {
+            background: #007AFF;
+        }
+
+        body.light-mode #floating-video-player button:hover {
+            background: #005BB5;
         }
     </style>
 </head>
