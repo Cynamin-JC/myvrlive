@@ -191,6 +191,15 @@
             left: 20px;
         }
 
+        #refreshTimer {
+            position: fixed;
+            bottom: 0;
+            left: 20px;
+            transform: translateY(-10px);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
         #toggleAdmin {
             left: 50%;
             transform: translateX(-50%);
@@ -213,6 +222,11 @@
                 margin: 10px auto;
                 display: block;
                 width: 80%;
+            }
+            #refreshTimer {
+                position: static;
+                margin: 0 10px 10px;
+                transform: none;
             }
         }
 
@@ -459,6 +473,7 @@
 
     <!-- Floating Buttons -->
     <button id="refreshButton">Refresh</button>
+    <div id="refreshTimer">Next refresh in 05:00</div>
     <button id="toggleAdmin">Toggle Admin Panel</button>
     <button id="modeButton">Light Mode</button>
 
@@ -467,10 +482,15 @@
         const ADMIN_USERNAME = 'bazza321';
         const ADMIN_PASSWORD = 'g1o1m1l1';
 
+        const AUTO_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+
         let videoLinks = [];
         let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         let isVideoLoading = false; // Global flag to prioritize video player over status checks
         let isPopulating = false; // Flag to prevent overlapping populateTables calls
+        let refreshTimerId = null;
+        let refreshCountdownId = null;
+        let nextRefreshAt = Date.now() + AUTO_REFRESH_INTERVAL_MS;
 
         // Load links from localStorage or fetch from JSON
         async function loadVideoLinks() {
@@ -498,11 +518,11 @@
         }
 
         // Process promises in batches to limit concurrency, with timeout per batch
-        async function processInBatches(promises, batchSize = 10) {
+        async function processInBatches(tasks, batchSize = 10) {
             const results = [];
-            for (let i = 0; i < promises.length; i += batchSize) {
-                const batch = promises.slice(i, i + batchSize);
-                const batchPromises = batch.map(fn => fn());
+            for (let i = 0; i < tasks.length; i += batchSize) {
+                const batch = tasks.slice(i, i + batchSize);
+                const batchPromises = batch.map(task => task());
                 try {
                     const batchResults = await Promise.race([
                         Promise.all(batchPromises),
@@ -511,11 +531,42 @@
                     results.push(...batchResults);
                 } catch (error) {
                     console.error('Batch timed out, skipping to next:', error);
-                    // Mark remaining as offline or skip
                     batch.forEach(() => results.push(false));
                 }
             }
             return results;
+        }
+
+        function startAutoRefresh() {
+            if (refreshTimerId) {
+                clearInterval(refreshTimerId);
+            }
+            if (refreshCountdownId) {
+                clearInterval(refreshCountdownId);
+            }
+
+            nextRefreshAt = Date.now() + AUTO_REFRESH_INTERVAL_MS;
+            updateRefreshTimer();
+
+            refreshCountdownId = setInterval(updateRefreshTimer, 1000);
+            refreshTimerId = setInterval(() => {
+                triggerRefresh();
+            }, AUTO_REFRESH_INTERVAL_MS);
+        }
+
+        function updateRefreshTimer() {
+            const remainingMs = Math.max(0, nextRefreshAt - Date.now());
+            const totalSeconds = Math.ceil(remainingMs / 1000);
+            const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            const timer = document.getElementById('refreshTimer');
+            timer.textContent = `Next refresh in ${minutes}:${seconds}`;
+        }
+
+        function triggerRefresh() {
+            nextRefreshAt = Date.now() + AUTO_REFRESH_INTERVAL_MS;
+            updateRefreshTimer();
+            populateTables();
         }
 
         // Function to create and load floating video player
@@ -607,7 +658,7 @@
             updateOnlineList();
 
             // Collect all status check promises for batched execution
-            const statusPromises = [];
+            const statusTasks = [];
 
             columns.forEach((group, index) => {
                 const currentTable = index === 0 ? leftTable : rightTable;
@@ -653,13 +704,13 @@
                     // Store reference to direct button for later
                     statusCell.directButton = directButton;
 
-                    // Collect promise for batched execution
-                    statusPromises.push(() => checkVideoStatus(video.url, statusCell));
+                    // Collect task for batched execution
+                    statusTasks.push(() => checkVideoStatus(video.url, statusCell));
                 });
             });
 
             // Run all status checks in batches of 10 with 15-second timeout per batch
-            await processInBatches(statusPromises.map(fn => fn()), 10);
+            await processInBatches(statusTasks, 10);
 
             isPopulating = false; // Allow new calls
         }
@@ -842,7 +893,11 @@
             updateLoginSection(); // Ensure correct section is shown when toggled
         });
 
-        document.getElementById('refreshButton').addEventListener('click', populateTables);
+        document.getElementById('refreshButton').addEventListener('click', () => {
+            triggerRefresh();
+            startAutoRefresh();
+        });
+
         document.getElementById('modeButton').addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             document.getElementById('modeButton').textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
@@ -851,6 +906,7 @@
         // Initialize
         loadVideoLinks().then(() => {
             populateTables();
+            startAutoRefresh();
         });
     </script>
 <script src="static/js/floatingVideoPlayer.js" defer></script>
