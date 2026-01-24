@@ -57,10 +57,10 @@
             color: var(--text-primary);
         }
 
-        /* Table Container: Use CSS Grid for responsive layout with three columns */
+        /* Table Container: Use CSS Grid with online list on the left */
         .table-container {
             display: grid;
-            grid-template-columns: 1fr 320px 1fr; /* Left table, online list, right table */
+            grid-template-columns: 320px 1fr 1fr; /* Online list, left table, right table */
             gap: 20px; /* Space between elements */
             width: 100%;
             max-width: 1400px; /* Adjust for extra column */
@@ -286,7 +286,7 @@
             outline: none;
         }
 
-        /* Embedded Online Users List: No longer floating, integrated into grid */
+        /* Embedded Online Users List: Now on the left side */
         #onlineUsers {
             background: var(--bg-secondary);
             color: var(--text-primary);
@@ -396,6 +396,14 @@
     <h1>Video Links & Stream Status</h1>
 
     <div class="table-container">
+        <!-- Embedded Online Users List on the left -->
+        <div id="onlineUsers">
+            <h3>Online Now</h3>
+            <ul id="onlineList">
+                <li>No one is online</li>
+            </ul>
+        </div>
+
         <table>
             <thead>
                 <tr>
@@ -406,14 +414,6 @@
             </thead>
             <tbody id="leftTable"></tbody>
         </table>
-
-        <!-- Embedded Online Users List -->
-        <div id="onlineUsers">
-            <h3>Online Now</h3>
-            <ul id="onlineList">
-                <li>No one is online</li>
-            </ul>
-        </div>
 
         <table>
             <thead>
