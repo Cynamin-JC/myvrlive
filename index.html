@@ -130,9 +130,8 @@
 
         .status.online { background: var(--color-success); }
         .status.offline { background: var(--color-error); }
-        .status.checking { background: var(--color-warning); }
 
-        .link-button, .direct-button {
+        .link-button, .direct-button, .favorite-button {
             display: inline-block;
             background: var(--color-primary);
             color: #fff;
@@ -149,7 +148,7 @@
             min-height: 40px;
         }
 
-        .link-button:hover, .direct-button:hover {
+        .link-button:hover, .direct-button:hover, .favorite-button:hover {
             background: var(--color-primary-hover);
             transform: scale(1.03);
         }
@@ -162,7 +161,19 @@
             background: var(--color-success-hover);
         }
 
-        .link-button:focus, .direct-button:focus, button:focus {
+        .favorite-button {
+            background: var(--color-warning);
+            color: #1e1e1e;
+        }
+
+        .favorite-button:hover {
+            background: #e0a800;
+        }
+
+        .link-button:focus,
+        .direct-button:focus,
+        .favorite-button:focus,
+        button:focus {
             outline: 2px solid var(--color-primary);
             outline-offset: 2px;
         }
@@ -254,6 +265,7 @@
         }
 
         #onlineUsers,
+        #favoritePanel,
         #mostWatchedPanel {
             background: var(--bg-secondary);
             color: var(--text-primary);
@@ -266,6 +278,7 @@
         }
 
         #onlineUsers h3,
+        #favoritePanel h3,
         #mostWatchedPanel h3 {
             margin: 0 0 10px;
             font-size: 16px;
@@ -274,6 +287,7 @@
         }
 
         #onlineUsers ul,
+        #favoritePanel ul,
         #mostWatchedPanel ul {
             list-style: none;
             padding: 0;
@@ -281,6 +295,7 @@
         }
 
         #onlineUsers li,
+        #favoritePanel li,
         #mostWatchedPanel li {
             display: flex;
             justify-content: space-between;
@@ -293,12 +308,26 @@
         }
 
         #onlineUsers .link-button,
+        #favoritePanel .link-button,
         #mostWatchedPanel .link-button {
             font-size: 12px;
             padding: 8px 12px;
             min-height: 36px;
         }
 
+        #favoritePanel .favorite-button {
+            font-size: 12px;
+            padding: 8px 12px;
+            min-height: 36px;
+            margin-right: 0;
+        }
+
+        #favoriteList {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        #favoritePanel .favorite-info,
         #mostWatchedPanel .most-watched-info {
             display: flex;
             flex-direction: column;
@@ -306,6 +335,7 @@
             flex: 1;
         }
 
+        #favoritePanel .status,
         #mostWatchedPanel .status {
             font-size: 12px;
             padding: 6px 10px;
@@ -454,6 +484,13 @@
                 </ul>
             </div>
 
+            <div id="favoritePanel">
+                <h3>Favorite DJs</h3>
+                <ul id="favoriteList">
+                    <li>No favorites yet</li>
+                </ul>
+            </div>
+
             <div id="mostWatchedPanel">
                 <h3>Most Watched</h3>
                 <ul id="mostWatchedList">
@@ -533,9 +570,11 @@
 
         const THEME_STORAGE_KEY = 'preferredTheme';
         const WATCH_COUNTS_KEY = 'watchCounts';
+        const FAVORITES_KEY = 'favoriteDjs';
 
         let statusCache = new Map();
         let statusCellMap = new Map();
+        let favoriteUrls = getFavorites();
 
         function getWatchCounts() {
             const stored = localStorage.getItem(WATCH_COUNTS_KEY);
@@ -544,6 +583,37 @@
 
         function saveWatchCounts(counts) {
             localStorage.setItem(WATCH_COUNTS_KEY, JSON.stringify(counts));
+        }
+
+        function getFavorites() {
+            const stored = localStorage.getItem(FAVORITES_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function saveFavorites(favorites) {
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+        }
+
+        function isFavorite(url) {
+            return favoriteUrls.includes(url);
+        }
+
+        function toggleFavorite(video) {
+            if (isFavorite(video.url)) {
+                favoriteUrls = favoriteUrls.filter(url => url !== video.url);
+            } else {
+                favoriteUrls = [...favoriteUrls, video.url];
+            }
+            saveFavorites(favoriteUrls);
+            updateFavoriteButtons();
+            renderFavorites();
+        }
+
+        function updateFavoriteButtons() {
+            document.querySelectorAll('.favorite-button').forEach(button => {
+                const url = button.dataset.url;
+                button.textContent = isFavorite(url) ? 'Remove' : 'Favorite';
+            });
         }
 
         function incrementWatchCount(video) {
@@ -563,21 +633,21 @@
                 .slice(0, 5);
         }
 
-        function getStatusState(url) {
-            return statusCache.get(url) ?? 'checking';
+        function getFavoriteVideos() {
+            return favoriteUrls
+                .map(url => videoLinks.find(video => video.url === url))
+                .filter(Boolean);
         }
 
-        function setStatusChecking(url, shouldRender = true) {
-            statusCache.set(url, 'checking');
-            if (shouldRender) {
-                renderMostWatched();
-            }
+        function getStatusState(url) {
+            return statusCache.get(url) ?? 'offline';
         }
 
         function setStatusState(url, isOnline, shouldRender = true) {
             statusCache.set(url, isOnline ? 'online' : 'offline');
             if (shouldRender) {
                 renderMostWatched();
+                renderFavorites();
             }
         }
 
@@ -591,6 +661,70 @@
         function applyStatusToCells(url, isOnline) {
             const cells = statusCellMap.get(url) || [];
             cells.forEach(cell => updateStatusCell(isOnline, cell));
+        }
+
+        function renderFavorites() {
+            const list = document.getElementById('favoriteList');
+            const favorites = getFavoriteVideos();
+
+            list.innerHTML = '';
+
+            if (favorites.length === 0) {
+                const empty = document.createElement('li');
+                empty.textContent = 'No favorites yet';
+                list.appendChild(empty);
+                return;
+            }
+
+            favorites.sort((a, b) => {
+                const aOnline = getStatusState(a.url) === 'online';
+                const bOnline = getStatusState(b.url) === 'online';
+                if (aOnline !== bOnline) {
+                    return aOnline ? -1 : 1;
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            favorites.forEach(video => {
+                const item = document.createElement('li');
+
+                const info = document.createElement('div');
+                info.className = 'favorite-info';
+
+                const label = document.createElement('span');
+                label.textContent = video.name;
+
+                const statusBadge = document.createElement('span');
+                const state = getStatusState(video.url);
+                statusBadge.className = `status ${state}`;
+                statusBadge.textContent = state === 'online' ? 'Online' : 'Offline';
+
+                info.appendChild(label);
+                info.appendChild(statusBadge);
+
+                const watchButton = document.createElement('a');
+                watchButton.href = video.url;
+                watchButton.target = '_blank';
+                watchButton.textContent = 'Watch';
+                watchButton.className = 'link-button';
+                watchButton.onclick = (e) => {
+                    e.preventDefault();
+                    incrementWatchCount(video);
+                    loadFloatingVideo(video.url);
+                };
+
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'favorite-button';
+                removeButton.textContent = 'Remove';
+                removeButton.dataset.url = video.url;
+                removeButton.onclick = () => toggleFavorite(video);
+
+                item.appendChild(info);
+                item.appendChild(watchButton);
+                item.appendChild(removeButton);
+                list.appendChild(item);
+            });
         }
 
         function renderMostWatched() {
@@ -618,11 +752,7 @@
                 const statusBadge = document.createElement('span');
                 const state = getStatusState(video.url);
                 statusBadge.className = `status ${state}`;
-                statusBadge.textContent = state === 'online'
-                    ? 'Online'
-                    : state === 'offline'
-                        ? 'Offline'
-                        : 'Checking...';
+                statusBadge.textContent = state === 'online' ? 'Online' : 'Offline';
 
                 info.appendChild(label);
                 info.appendChild(statusBadge);
@@ -813,6 +943,7 @@
             const columns = [videoLinks.slice(0, midIndex), videoLinks.slice(midIndex)];
 
             updateOnlineList();
+            renderFavorites();
             renderMostWatched();
 
             const statusTasks = [];
@@ -849,11 +980,19 @@
                     directButton.style.display = 'none';
                     linkCell.appendChild(directButton);
 
+                    const favoriteButton = document.createElement('button');
+                    favoriteButton.type = 'button';
+                    favoriteButton.className = 'favorite-button';
+                    favoriteButton.dataset.url = video.url;
+                    favoriteButton.textContent = isFavorite(video.url) ? 'Remove' : 'Favorite';
+                    favoriteButton.onclick = () => toggleFavorite(video);
+                    linkCell.appendChild(favoriteButton);
+
                     row.appendChild(linkCell);
 
                     const statusCell = document.createElement('td');
-                    statusCell.className = 'status checking';
-                    statusCell.textContent = 'Checking...';
+                    statusCell.className = 'status offline';
+                    statusCell.textContent = 'Offline';
                     statusCell.dataset.url = video.url;
                     row.appendChild(statusCell);
 
@@ -865,8 +1004,10 @@
                 });
             });
 
-            await refreshMostWatchedStatuses();
+            updateFavoriteButtons();
+            await refreshFavoriteStatuses();
             await processInBatches(statusTasks, 10);
+            await refreshMostWatchedStatuses();
 
             isPopulating = false;
         }
@@ -905,6 +1046,27 @@
             }
         }
 
+        async function refreshFavoriteStatuses() {
+            const favorites = getFavoriteVideos();
+
+            if (favorites.length === 0) {
+                return;
+            }
+
+            renderFavorites();
+
+            const tasks = favorites.map(video => async () => {
+                const isOnline = await getVideoStatus(video.url);
+                setStatusState(video.url, isOnline, false);
+                applyStatusToCells(video.url, isOnline);
+                return isOnline;
+            });
+
+            await processInBatches(tasks, 10);
+            renderFavorites();
+            updateOnlineList();
+        }
+
         async function refreshMostWatchedStatuses() {
             const ranked = getRankedMostWatched();
 
@@ -912,7 +1074,6 @@
                 return;
             }
 
-            ranked.forEach(({ video }) => setStatusChecking(video.url, false));
             renderMostWatched();
 
             const tasks = ranked.map(({ video }) => async () => {
@@ -924,6 +1085,7 @@
 
             await processInBatches(tasks, 10);
             renderMostWatched();
+            updateOnlineList();
         }
 
         async function getVideoStatus(url) {
