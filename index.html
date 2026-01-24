@@ -46,7 +46,7 @@
             color: var(--text-primary);
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
+            padding: 20px 20px 20px 0; /* Left padding removed to push against left side */
             transition: var(--transition);
         }
 
@@ -57,14 +57,14 @@
             color: var(--text-primary);
         }
 
-        /* Table Container: Use CSS Grid with online list on the left */
+        /* Table Container: Align to the left */
         .table-container {
             display: grid;
             grid-template-columns: 320px 1fr 1fr; /* Online list, left table, right table */
             gap: 20px; /* Space between elements */
             width: 100%;
             max-width: 1400px; /* Adjust for extra column */
-            margin: 0 auto;
+            margin: 0; /* Removed auto to align left */
         }
 
         /* Responsive: Stack on smaller screens */
