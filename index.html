@@ -130,6 +130,7 @@
 
         .status.online { background: var(--color-success); }
         .status.offline { background: var(--color-error); }
+        .status.checking { background: var(--color-warning); color: #1e1e1e; }
 
         .link-button, .direct-button, .favorite-button {
             display: inline-block;
@@ -640,11 +641,17 @@
         }
 
         function getStatusState(url) {
-            return statusCache.get(url) ?? 'offline';
+            return statusCache.get(url) ?? 'checking';
         }
 
-        function setStatusState(url, isOnline, shouldRender = true) {
-            statusCache.set(url, isOnline ? 'online' : 'offline');
+        function getStatusLabel(state) {
+            if (state === 'online') return 'Online';
+            if (state === 'offline') return 'Offline';
+            return 'Checking';
+        }
+
+        function setStatusState(url, state, shouldRender = true) {
+            statusCache.set(url, state);
             if (shouldRender) {
                 renderMostWatched();
                 renderFavorites();
@@ -658,9 +665,18 @@
             statusCellMap.get(url).push(statusCell);
         }
 
-        function applyStatusToCells(url, isOnline) {
+        function updateStatusCellState(state, statusCell) {
+            statusCell.className = `status ${state}`;
+            statusCell.textContent = getStatusLabel(state);
+            if (statusCell.directButton) {
+                statusCell.directButton.style.display = (state === 'online' && isLoggedIn) ? 'inline-block' : 'none';
+            }
+            updateOnlineList();
+        }
+
+        function applyStatusToCells(url, state) {
             const cells = statusCellMap.get(url) || [];
-            cells.forEach(cell => updateStatusCell(isOnline, cell));
+            cells.forEach(cell => updateStatusCellState(state, cell));
         }
 
         function renderFavorites() {
@@ -677,11 +693,14 @@
             }
 
             favorites.sort((a, b) => {
-                const aOnline = getStatusState(a.url) === 'online';
-                const bOnline = getStatusState(b.url) === 'online';
-                if (aOnline !== bOnline) {
-                    return aOnline ? -1 : 1;
-                }
+                const stateRank = (video) => {
+                    const state = getStatusState(video.url);
+                    if (state === 'online') return 0;
+                    if (state === 'checking') return 1;
+                    return 2;
+                };
+                const rankDiff = stateRank(a) - stateRank(b);
+                if (rankDiff !== 0) return rankDiff;
                 return a.name.localeCompare(b.name);
             });
 
@@ -697,7 +716,7 @@
                 const statusBadge = document.createElement('span');
                 const state = getStatusState(video.url);
                 statusBadge.className = `status ${state}`;
-                statusBadge.textContent = state === 'online' ? 'Online' : 'Offline';
+                statusBadge.textContent = getStatusLabel(state);
 
                 info.appendChild(label);
                 info.appendChild(statusBadge);
@@ -752,7 +771,7 @@
                 const statusBadge = document.createElement('span');
                 const state = getStatusState(video.url);
                 statusBadge.className = `status ${state}`;
-                statusBadge.textContent = state === 'online' ? 'Online' : 'Offline';
+                statusBadge.textContent = getStatusLabel(state);
 
                 info.appendChild(label);
                 info.appendChild(statusBadge);
@@ -991,8 +1010,6 @@
                     row.appendChild(linkCell);
 
                     const statusCell = document.createElement('td');
-                    statusCell.className = 'status offline';
-                    statusCell.textContent = 'Offline';
                     statusCell.dataset.url = video.url;
                     row.appendChild(statusCell);
 
@@ -1000,6 +1017,8 @@
 
                     statusCell.directButton = directButton;
                     registerStatusCell(video.url, statusCell);
+                    setStatusState(video.url, 'checking', false);
+                    updateStatusCellState('checking', statusCell);
                     statusTasks.push(() => checkAndUpdateStatus(video.url, statusCell));
                 });
             });
@@ -1053,12 +1072,17 @@
                 return;
             }
 
+            favorites.forEach(video => {
+                setStatusState(video.url, 'checking', false);
+                applyStatusToCells(video.url, 'checking');
+            });
             renderFavorites();
 
             const tasks = favorites.map(video => async () => {
                 const isOnline = await getVideoStatus(video.url);
-                setStatusState(video.url, isOnline, false);
-                applyStatusToCells(video.url, isOnline);
+                const state = isOnline ? 'online' : 'offline';
+                setStatusState(video.url, state, false);
+                applyStatusToCells(video.url, state);
                 return isOnline;
             });
 
@@ -1074,12 +1098,17 @@
                 return;
             }
 
+            ranked.forEach(({ video }) => {
+                setStatusState(video.url, 'checking', false);
+                applyStatusToCells(video.url, 'checking');
+            });
             renderMostWatched();
 
             const tasks = ranked.map(({ video }) => async () => {
                 const isOnline = await getVideoStatus(video.url);
-                setStatusState(video.url, isOnline, false);
-                applyStatusToCells(video.url, isOnline);
+                const state = isOnline ? 'online' : 'offline';
+                setStatusState(video.url, state, false);
+                applyStatusToCells(video.url, state);
                 return isOnline;
             });
 
@@ -1106,21 +1135,16 @@
             try {
                 const isOnline = await getVideoStatus(url);
                 updateStatusCell(isOnline, statusCell);
-                setStatusState(url, isOnline);
+                setStatusState(url, isOnline ? 'online' : 'offline');
             } catch (error) {
                 console.error(`Error checking status for ${url}:`, error);
                 updateStatusCell(false, statusCell);
-                setStatusState(url, false);
+                setStatusState(url, 'offline');
             }
         }
 
         function updateStatusCell(isOnline, statusCell) {
-            statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
-            statusCell.textContent = isOnline ? 'Online' : 'Offline';
-            if (statusCell.directButton) {
-                statusCell.directButton.style.display = (isOnline && isLoggedIn) ? 'inline-block' : 'none';
-            }
-            updateOnlineList();
+            updateStatusCellState(isOnline ? 'online' : 'offline', statusCell);
         }
 
         async function checkVideoLink(url) {
