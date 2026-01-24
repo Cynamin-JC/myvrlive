@@ -57,17 +57,17 @@
             color: var(--text-primary);
         }
 
-        /* Table Container: Use CSS Grid for responsive layout */
+        /* Table Container: Use CSS Grid for responsive layout with three columns */
         .table-container {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Two equal columns by default */
-            gap: 20px; /* Space between tables */
+            grid-template-columns: 1fr 320px 1fr; /* Left table, online list, right table */
+            gap: 20px; /* Space between elements */
             width: 100%;
-            max-width: 1200px; /* Prevent excessive width on large screens */
+            max-width: 1400px; /* Adjust for extra column */
             margin: 0 auto;
         }
 
-        /* Responsive: Stack tables on smaller screens */
+        /* Responsive: Stack on smaller screens */
         @media (max-width: 768px) {
             .table-container {
                 grid-template-columns: 1fr; /* Single column on mobile */
@@ -107,15 +107,16 @@
             box-shadow: var(--shadow);
         }
 
-        /* Status Badges */
+        /* Status Badges: Resize to match button sizes */
         .status {
             display: inline-block;
-            padding: 4px 10px;
-            font-size: 0.75rem;
+            padding: 8px 14px; /* Match button padding */
+            font-size: 14px; /* Match button font-size */
             border-radius: 20px;
             text-align: center;
             font-weight: bold;
             color: #fff;
+            line-height: 1; /* Ensure consistent height */
         }
 
         .status.online {
@@ -144,6 +145,7 @@
             margin-right: 8px;
             border: none;
             cursor: pointer;
+            font-size: 14px; /* Explicitly set to match */
         }
 
         .link-button:hover, .direct-button:hover {
@@ -284,26 +286,20 @@
             outline: none;
         }
 
-        /* Floating Online Users List */
+        /* Embedded Online Users List: No longer floating, integrated into grid */
         #onlineUsers {
-            position: fixed;
-            bottom: 80px;
-            left: 20px;
-            width: 300px;
-            max-height: 400px; /* Limit height to prevent overflow */
-            overflow-y: auto; /* Scroll if needed */
-            background: rgba(0, 0, 0, 0.9);
+            background: var(--bg-secondary);
             color: var(--text-primary);
             border-radius: var(--border-radius);
             padding: 15px;
             font-size: 14px;
             box-shadow: var(--shadow);
-            z-index: 1000;
             transition: var(--transition);
+            height: fit-content; /* Adjust to content */
         }
 
         body.light-mode #onlineUsers {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--bg-secondary);
             color: var(--text-primary);
         }
 
@@ -335,13 +331,10 @@
             padding: 6px 10px;
         }
 
-        /* Responsive: Hide or adjust on small screens */
+        /* Responsive: On mobile, online list moves below */
         @media (max-width: 768px) {
             #onlineUsers {
-                width: 90%;
-                left: 5%;
-                bottom: 120px; /* Adjust for buttons */
-                max-height: 200px;
+                order: 1; /* Ensure it appears after tables on mobile if needed, but since stacked, it should be fine */
             }
         }
 
@@ -413,6 +406,15 @@
             </thead>
             <tbody id="leftTable"></tbody>
         </table>
+
+        <!-- Embedded Online Users List -->
+        <div id="onlineUsers">
+            <h3>Online Now</h3>
+            <ul id="onlineList">
+                <li>No one is online</li>
+            </ul>
+        </div>
+
         <table>
             <thead>
                 <tr>
@@ -447,14 +449,6 @@
     <button id="refreshButton">Refresh</button>
     <button id="toggleAdmin">Toggle Admin Panel</button>
     <button id="modeButton">Light Mode</button>
-
-    <!-- Floating Online Users -->
-    <div id="onlineUsers">
-        <h3>Online Now</h3>
-        <ul id="onlineList">
-            <li>No one is online</li>
-        </ul>
-    </div>
 
     <script>
         // Easy-to-change login credentials
