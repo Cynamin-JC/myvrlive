@@ -168,7 +168,7 @@
         }
 
         /* Fixed Buttons */
-        #refreshButton, #modeButton, #toggleAdmin {
+        #modeButton {
             position: fixed;
             bottom: 20px;
             padding: 12px 16px;
@@ -182,27 +182,9 @@
             transition: var(--transition);
         }
 
-        #refreshButton:hover, #modeButton:hover, #toggleAdmin:hover {
+        #modeButton:hover {
             background: var(--color-primary-hover);
             transform: translateY(-2px);
-        }
-
-        #refreshButton {
-            left: 20px;
-        }
-
-        #refreshTimer {
-            position: fixed;
-            bottom: 0;
-            left: 20px;
-            transform: translateY(-10px);
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        #toggleAdmin {
-            left: 50%;
-            transform: translateX(-50%);
         }
 
         #modeButton {
@@ -211,31 +193,18 @@
 
         /* Responsive: Adjust button positions on small screens */
         @media (max-width: 768px) {
-            #refreshButton, #modeButton {
+            #modeButton {
                 position: static; /* Remove fixed positioning on mobile */
                 margin: 10px;
                 display: block;
                 width: calc(50% - 20px);
             }
-            #toggleAdmin {
-                position: static;
-                margin: 10px auto;
-                display: block;
-                width: 80%;
-            }
-            #refreshTimer {
-                position: static;
-                margin: 0 10px 10px;
-                transform: none;
-            }
         }
 
         /* Embedded Login/Admin Panel */
         #loginPanel {
-            width: 90%;
-            max-width: 600px; /* Limit width for better readability */
-            margin: 20px auto;
-            padding: 20px;
+            width: 100%;
+            padding: 16px;
             background: var(--bg-secondary);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
@@ -345,10 +314,58 @@
             padding: 6px 10px;
         }
 
+        /* Left column layout */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 40px);
+        }
+
+        .left-bottom-panel {
+            margin-top: auto;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: var(--border-radius);
+            padding: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .left-bottom-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .left-bottom-actions button {
+            padding: 10px 12px;
+            background: var(--color-primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .left-bottom-actions button:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-2px);
+        }
+
+        #refreshTimer {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-align: left;
+        }
+
         /* Responsive: On mobile, online list moves below */
         @media (max-width: 768px) {
-            #onlineUsers {
-                order: 1; /* Ensure it appears after tables on mobile if needed, but since stacked, it should be fine */
+            .left-column {
+                min-height: auto;
             }
         }
 
@@ -422,12 +439,42 @@
     <h1>Video Links & Stream Status</h1>
 
     <div class="table-container">
-        <!-- Embedded Online Users List on the left -->
-        <div id="onlineUsers">
-            <h3>Online Now</h3>
-            <ul id="onlineList">
-                <li>No one is online</li>
-            </ul>
+        <!-- Left Column: Online list and bottom panel -->
+        <div class="left-column">
+            <!-- Embedded Online Users List on the left -->
+            <div id="onlineUsers">
+                <h3>Online Now</h3>
+                <ul id="onlineList">
+                    <li>No one is online</li>
+                </ul>
+            </div>
+
+            <!-- Bottom-left panel (pinned to bottom of column) -->
+            <div class="left-bottom-panel">
+                <div class="left-bottom-actions">
+                    <button id="refreshButton">Refresh</button>
+                    <div id="refreshTimer">Next refresh in 05:00</div>
+                    <button id="toggleAdmin">Toggle Admin Panel</button>
+                </div>
+
+                <!-- Embedded Login/Admin Panel -->
+                <div id="loginPanel">
+                    <div id="loginSection">
+                        <h2>Admin Login</h2>
+                        <input type="text" id="username" placeholder="Username">
+                        <input type="password" id="password" placeholder="Password">
+                        <button id="loginSubmit">Login</button>
+                    </div>
+                    <div id="adminSection">
+                        <h2>Admin Panel</h2>
+                        <p>Current Links (for manual update to video-links.json):</p>
+                        <textarea id="exportTextarea" readonly></textarea>
+                        <button id="exportBtn">Download JSON</button>
+                        <button id="logoutBtn">Logout</button>
+                        <p><strong>To update video-links.json:</strong> Copy the JSON above, edit the file in your GitHub repo, paste, and commit.</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <table>
@@ -453,28 +500,7 @@
         </table>
     </div>
 
-    <!-- Embedded Login/Admin Panel -->
-    <div id="loginPanel">
-        <div id="loginSection">
-            <h2>Admin Login</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <button id="loginSubmit">Login</button>
-        </div>
-        <div id="adminSection">
-            <h2>Admin Panel</h2>
-            <p>Current Links (for manual update to video-links.json):</p>
-            <textarea id="exportTextarea" readonly></textarea>
-            <button id="exportBtn">Download JSON</button>
-            <button id="logoutBtn">Logout</button>
-            <p><strong>To update video-links.json:</strong> Copy the JSON above, edit the file in your GitHub repo, paste, and commit.</p>
-        </div>
-    </div>
-
     <!-- Floating Buttons -->
-    <button id="refreshButton">Refresh</button>
-    <div id="refreshTimer">Next refresh in 05:00</div>
-    <button id="toggleAdmin">Toggle Admin Panel</button>
     <button id="modeButton">Light Mode</button>
 
     <script>
