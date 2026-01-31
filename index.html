@@ -910,12 +910,38 @@
                 recentList.appendChild(emptyMsg);
             } else {
                 sortedRecent.forEach(([name, count]) => {
+                    const displayName = name.replace('.live.mp4', '');
                     const listItem = document.createElement('li');
-                    listItem.innerHTML = `<span>${name}</span>`;
+                    listItem.innerHTML = `<span>${displayName}</span>`;
                     const bubble = document.createElement('div');
                     bubble.className = 'watch-bubble';
                     bubble.textContent = count;
                     listItem.appendChild(bubble);
+
+                    // Check if online
+                    const isOnline = Array.from(document.querySelectorAll('.status.online')).some(status => {
+                        const row = status.parentNode;
+                        const rowName = row.querySelector('td:first-child').textContent;
+                        return rowName === name;
+                    });
+
+                    if (isOnline) {
+                        const watchButton = document.createElement('a');
+                        watchButton.href = '#'; // Will set onclick
+                        watchButton.textContent = 'Watch';
+                        watchButton.className = 'link-button';
+                        watchButton.onclick = (e) => {
+                            e.preventDefault();
+                            const video = videoLinks.find(v => v.name === name);
+                            if (video) {
+                                recentWatches[name] = (recentWatches[name] || 0) + 1;
+                                saveRecentWatches();
+                                updateRecentList();
+                                loadFloatingVideo(video.url);
+                            }
+                        };
+                        listItem.appendChild(watchButton);
+                    }
 
                     recentList.appendChild(listItem);
                 });
@@ -949,6 +975,7 @@
                 statusCell.directButton.style.display = (isOnline && isLoggedIn) ? 'inline-block' : 'none';
             }
             updateOnlineList();
+            updateRecentList(); // Update recent list when status changes
         }
 
         async function checkVideoLink(url) {
