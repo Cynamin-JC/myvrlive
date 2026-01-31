@@ -557,11 +557,11 @@
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                <th>Video Link</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rightTable"></tbody>
+                                    <th>Video Link</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rightTable"></tbody>
                     </table>
                 </div>
             </div>
@@ -580,7 +580,6 @@
         let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         let isVideoLoading = false;
         let isPopulating = false;
-        let isCheckingStatus = false;
         let refreshTimerId = null;
         let refreshCountdownId = null;
         let nextRefreshAt = Date.now() + AUTO_REFRESH_INTERVAL_MS;
@@ -880,10 +879,6 @@
                     });
                 });
 
-                if (statusTasks.length > 0) {
-                    isCheckingStatus = true;
-                }
-
                 // Split tasks into two halves and process in parallel
                 const batchSplit = Math.ceil(statusTasks.length / 2);
                 const firstHalf = statusTasks.slice(0, batchSplit);
@@ -897,17 +892,14 @@
                     console.error('Error in batching:', error);
                 }
                 console.log('Online status mapping:', onlineStatusByUrl);
-            } finally {
-                isCheckingStatus = false;
                 updateOnlineList();
                 updateRecentList();
+            } finally {
                 isPopulating = false;
             }
         }
 
         function updateOnlineList() {
-            if (isCheckingStatus) return; // Don't update during checks
-
             const onlineList = document.getElementById('onlineList');
             onlineList.innerHTML = '';
 
@@ -948,8 +940,6 @@
         }
 
         function updateRecentList() {
-            if (isCheckingStatus) return; // Don't update during checks
-
             const recentList = document.getElementById('recentList');
             recentList.innerHTML = '';
 
@@ -1024,7 +1014,8 @@
             statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
             statusCell.textContent = isOnline ? 'Online' : 'Offline';
             onlineStatusByUrl[url] = isOnline;
-            // Removed calls to updateOnlineList and updateRecentList here
+            updateOnlineList();
+            updateRecentList();
         }
 
         async function checkVideoLink(url) {
