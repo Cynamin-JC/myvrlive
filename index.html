@@ -94,27 +94,6 @@
             margin-left: auto;
         }
 
-        .clear-btn {
-            background: var(--color-error);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: var(--transition);
-        }
-
-        .clear-btn:hover {
-            background: var(--color-error);
-            transform: scale(1.1);
-        }
-
         h1 {
             text-align: center;
             font-size: clamp(1.5rem, 2.5vw, 2rem);
@@ -421,8 +400,7 @@
         #floating-video-player {
             position: fixed;
             bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 16px;
             width: min(320px, 90vw);
             min-width: 200px;
             min-height: 150px;
@@ -509,7 +487,7 @@
             </div>
 
             <div id="recentlyWatched">
-                <h3>Recently Watched <button id="clearRecentBtn" class="clear-btn" title="Clear Recently Watched">⟲</button></h3>
+                <h3>Recently Watched</h3>
                 <ul id="recentList">
                     <li>No recent watches</li>
                 </ul>
@@ -833,11 +811,7 @@
                             recentWatches[name] = (recentWatches[name] || 0) + 1;
                             saveRecentWatches();
                             updateRecentList();
-                            if (video.url.includes('twitch.tv') || video.url.includes('kick.com')) {
-                                window.open(video.url, '_blank');
-                            } else {
-                                loadFloatingVideo(video.url);
-                            }
+                            loadFloatingVideo(video.url);
                         };
                         linkCell.appendChild(linkButton);
 
@@ -915,11 +889,7 @@
                         recentWatches[name] = (recentWatches[name] || 0) + 1;
                         saveRecentWatches();
                         updateRecentList();
-                        if (videoLink.includes('twitch.tv') || videoLink.includes('kick.com')) {
-                            window.open(videoLink, '_blank');
-                        } else {
-                            loadFloatingVideo(videoLink);
-                        }
+                        loadFloatingVideo(videoLink);
                     };
                     listItem.appendChild(watchButton);
 
@@ -967,11 +937,7 @@
                                 recentWatches[name] = (recentWatches[name] || 0) + 1;
                                 saveRecentWatches();
                                 updateRecentList();
-                                if (video.url.includes('twitch.tv') || video.url.includes('kick.com')) {
-                                    window.open(video.url, '_blank');
-                                } else {
-                                    loadFloatingVideo(video.url);
-                                }
+                                loadFloatingVideo(video.url);
                             }
                         };
                         listItem.appendChild(watchButton);
@@ -1107,7 +1073,7 @@
 
         document.getElementById('exportBtn').addEventListener('click', () => {
             const data = JSON.stringify(videoLinks, null, 2);
-            const blob = new Blob([data], { type='application/json' });
+            const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1130,12 +1096,6 @@
         document.getElementById('modeButton').addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             document.getElementById('modeButton').textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
-        });
-
-        document.getElementById('clearRecentBtn').addEventListener('click', () => {
-            recentWatches = {};
-            saveRecentWatches();
-            updateRecentList();
         });
 
         loadVideoLinks().then(() => {
