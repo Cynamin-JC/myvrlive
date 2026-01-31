@@ -21,7 +21,6 @@
             --border-radius: 8px;
             --transition: all 0.3s ease;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            --animation-duration: 3s;
         }
 
         body.light-mode {
@@ -314,7 +313,7 @@
             background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
             padding: 2px;
             border-radius: 8px;
-            animation: rainbow var(--animation-duration) linear infinite;
+            animation: rainbow 3s linear infinite;
         }
 
         @keyframes rainbow {
@@ -572,10 +571,10 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Video Link</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rightTable"></tbody>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rightTable"></tbody>
                     </table>
                 </div>
             </div>
@@ -600,9 +599,6 @@
         let lastFullCheck = Date.now();
         let recentWatches = JSON.parse(localStorage.getItem('recentWatches') || '{}');
         let onlineStatusByUrl = {};
-        let audioContext = null;
-        let analyser = null;
-        let animationFrameId = null;
 
         function isUserUnmuted() {
             return localStorage.getItem('videoUnmuted') === 'true';
@@ -668,7 +664,7 @@
                 try {
                     const batchResults = await Promise.race([
                         Promise.all(batchPromises),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Batch timeout')), 15000))
+                        new Promise((_, reject) => setTimeout(() => reject(newError('Batch timeout')), 15000))
                     ]);
                     results.push(...batchResults);
                 } catch (error) {
@@ -727,32 +723,6 @@
             video.currentTime = 0;
             video.src = videoSrc;
             video.load();
-
-            // Set up audio reactivity
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                const source = audioContext.createMediaElementSource(video);
-                source.connect(analyser);
-                analyser.connect(audioContext.destination);
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-            }
-
-            function updateAudioReactivity() {
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                analyser.getByteFrequencyData(dataArray);
-                const average = dataArray.reduce((a, b) => a + b) / bufferLength;
-                const speed = Math.max(0.5, 3 - (average / 255) * 2.5); // Faster when louder, min 0.5s
-                document.documentElement.style.setProperty('--animation-duration', `${speed}s`);
-                animationFrameId = requestAnimationFrame(updateAudioReactivity);
-            }
-
-            updateAudioReactivity();
-
             video.play().catch(err => {
                 if (err.name !== 'AbortError') {
                     console.error('Play failed:', err);
@@ -795,12 +765,6 @@
                 wrapper.style.display = 'none';
                 video.pause();
                 video.src = '';
-                if (animationFrameId) {
-                    cancelAnimationFrame(animationFrameId);
-                    animationFrameId = null;
-                }
-                // Reset to default speed
-                document.documentElement.style.setProperty('--animation-duration', '3s');
             };
         }
 
