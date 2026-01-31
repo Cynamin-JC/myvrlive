@@ -561,8 +561,7 @@
                                 </tr>
                             </thead>
                             <tbody id="rightTable"></tbody>
-                        </table>
-                    </div>
+                    </table>
                 </div>
             </div>
         </div>
@@ -885,14 +884,13 @@
                     watchButton.setAttribute('data-video-src', videoLink);
                     watchButton.onclick = (e) => {
                         e.preventDefault();
-                        const name = videoLink.split('/').pop(); // or from row
                         recentWatches[name] = (recentWatches[name] || 0) + 1;
                         saveRecentWatches();
                         updateRecentList();
-                        if (videoLink.includes('twitch.tv') || video.url.includes('kick.com')) {
-                            window.open(video.url, '_blank');
+                        if (videoLink.includes('twitch.tv') || videoLink.includes('kick.com')) {
+                            window.open(videoLink, '_blank');
                         } else {
-                            loadFloatingVideo(video.url);
+                            loadFloatingVideo(videoLink);
                         }
                     };
                     listItem.appendChild(watchButton);
