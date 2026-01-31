@@ -585,6 +585,19 @@
         let lastFullCheck = Date.now();
         let recentWatches = JSON.parse(localStorage.getItem('recentWatches') || '{}');
 
+        function isUserUnmuted() {
+            return localStorage.getItem('videoUnmuted') === 'true';
+        }
+
+        function setUserUnmuted(flag) {
+            localStorage.setItem('videoUnmuted', !!flag ? 'true' : 'false');
+        }
+
+        function updateMuteBtn(video) {
+            const btn = document.getElementById('center-mute-btn');
+            btn.textContent = video.muted ? 'Unmute' : 'Mute';
+        }
+
         async function loadVideoLinks() {
             const stored = localStorage.getItem('videoLinks');
             if (stored) {
@@ -640,7 +653,7 @@
                 try {
                     const batchResults = await Promise.race([
                         Promise.all(batchPromises),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Batch timeout')), 15000))
+                        new Promise((_, reject) => setTimeout(() => reject(newError('Batch timeout')), 15000))
                     ]);
                     results.push(...batchResults);
                 } catch (error) {
@@ -691,7 +704,11 @@
             wrapper.style.display = 'block';
             const video = document.getElementById('center-video');
             video.pause();
-            video.muted = true;
+
+            // Set muted/unmuted based on user preference
+            video.muted = !isUserUnmuted();
+            video.volume = 0.5;
+
             video.currentTime = 0;
             video.src = videoSrc;
             video.load();
@@ -704,12 +721,16 @@
                 isVideoLoading = false;
             });
 
+            // Set correct mute button text
+            updateMuteBtn(video);
+
             // Attach controls
             document.getElementById('center-mute-btn').onclick = function() {
                 const video = document.getElementById('center-video');
                 video.muted = !video.muted;
-                this.textContent = video.muted ? 'Unmute' : 'Mute';
-                // If unmuting and video is paused, re-play to trigger audio (some browsers need this)
+                setUserUnmuted(!video.muted);
+                updateMuteBtn(video);
+                // If unmuted and video is paused, re-play to trigger audio
                 if (!video.muted && video.paused) {
                     video.play().catch(() => {});
                 }
