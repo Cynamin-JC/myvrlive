@@ -593,7 +593,7 @@
 
             refreshCountdownId = setInterval(updateRefreshTimer, 1000);
             refreshTimerId = setInterval(() => {
-                triggerRefresh();
+                triggerRefresh(false);
             }, AUTO_REFRESH_INTERVAL_MS);
         }
 
@@ -606,11 +606,13 @@
             timer.textContent = `Next refresh in ${minutes}:${seconds}`;
         }
 
-        function triggerRefresh() {
+        function triggerRefresh(forceFullCheck = false) {
             nextRefreshAt = Date.now() + AUTO_REFRESH_INTERVAL_MS;
             updateRefreshTimer();
+            const now = new Date();
+            const shouldFullCheck = forceFullCheck || now.getMinutes() === 0;
             fetchVideoLinks().then(() => {
-                populateTables();
+                populateTables(shouldFullCheck);
             });
         }
 
@@ -683,7 +685,7 @@
             }
         }
 
-        async function populateTables() {
+        async function populateTables(forceFullCheck = false) {
             if (isPopulating) return;
             isPopulating = true;
 
@@ -774,8 +776,8 @@
                         const isNew = !currentUrls.has(video.url);
                         const wasOffline = offlineUrls.has(video.url);
 
-                        if (isNew || wasOffline) {
-                            // Check status for new or previously offline
+                        if (forceFullCheck || isNew || wasOffline) {
+                            // Check status for new, previously offline, or full check
                             statusCell.className = 'status checking';
                             statusCell.textContent = 'Checking...';
                             statusCell.directButton = directButton;
@@ -976,7 +978,7 @@
         });
 
         document.getElementById('refreshButton').addEventListener('click', () => {
-            triggerRefresh();
+            triggerRefresh(true);
             startAutoRefresh();
         });
 
