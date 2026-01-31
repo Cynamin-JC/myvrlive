@@ -707,18 +707,12 @@
 
                 // Distribute groups into two columns, balancing total items
                 const columns = [[], []];
-                let totalItems = videoLinks.length;
-                let half = Math.ceil(totalItems / 2);
-                let currentCount = 0;
-                let colIndex = 0;
-
+                const columnCounts = [0, 0];
                 for (const letter of sortedLetters) {
                     const group = grouped[letter];
-                    if (colIndex === 0 && currentCount + group.length > half) {
-                        colIndex = 1;
-                    }
+                    const colIndex = columnCounts[0] <= columnCounts[1] ? 0 : 1;
                     columns[colIndex].push(...group);
-                    currentCount += group.length;
+                    columnCounts[colIndex] += group.length;
                 }
 
                 updateOnlineList();
