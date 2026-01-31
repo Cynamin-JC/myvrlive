@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale="1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyVRLive! Live VRC DJs</title>
     <style>
         :root {
@@ -887,18 +887,17 @@
                     });
                 });
 
-                updateOnlineList();
-                updateRecentList();
-
                 // Split tasks into two halves and process in parallel
-                const half = Math.ceil(statusTasks.length / 2);
-                const firstHalf = statusTasks.slice(0, half);
-                const secondHalf = statusTasks.slice(half);
+                const batchSplit = Math.ceil(statusTasks.length / 2);
+                const firstHalf = statusTasks.slice(0, batchSplit);
+                const secondHalf = statusTasks.slice(batchSplit);
                 await Promise.all([
                     processInBatches(firstHalf, 5),
                     processInBatches(secondHalf, 5)
                 ]);
 
+                updateOnlineList();
+                updateRecentList();
                 tryAutoPlayLastStream();
             } finally {
                 isPopulating = false;
@@ -1019,8 +1018,6 @@
             statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
             statusCell.textContent = isOnline ? 'Online' : 'Offline';
             onlineStatusByUrl[url] = isOnline;
-            updateOnlineList();
-            updateRecentList();
         }
 
         async function checkVideoLink(url) {
