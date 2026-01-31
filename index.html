@@ -705,14 +705,20 @@
                 // Sort groups by letter
                 const sortedLetters = Object.keys(grouped).sort();
 
-                // Distribute groups into two columns, balancing total items
+                // Distribute groups into two columns
                 const columns = [[], []];
-                const columnCounts = [0, 0];
+                let totalItems = videoLinks.length;
+                let half = Math.ceil(totalItems / 2);
+                let currentCount = 0;
+                let colIndex = 0;
+
                 for (const letter of sortedLetters) {
                     const group = grouped[letter];
-                    const colIndex = columnCounts[0] <= columnCounts[1] ? 0 : 1;
+                    if (colIndex === 0 && currentCount + group.length > half) {
+                        colIndex = 1;
+                    }
                     columns[colIndex].push(...group);
-                    columnCounts[colIndex] += group.length;
+                    currentCount += group.length;
                 }
 
                 updateOnlineList();
