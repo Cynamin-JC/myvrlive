@@ -535,12 +535,13 @@
         async function fetchVideoLinks() {
             try {
                 const response = await fetch('video-links.json');
-                videoLinks = await response.json();
+                const newLinks = await response.json();
+                videoLinks = newLinks;
                 deduplicateAndSortVideoLinks();
                 saveVideoLinks();
             } catch (error) {
                 console.error('Error fetching video links:', error);
-                videoLinks = [];
+                // Keep the current videoLinks if fetch fails
             }
         }
 
