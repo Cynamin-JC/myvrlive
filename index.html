@@ -526,10 +526,11 @@
             <div class="centered-content-holder">
                 <div id="centerVideoWrapper">
                     <div id="centerVideoPlayer" class="centered-video-player">
-                        <video id="center-video" controls autoplay muted>
+                        <video id="center-video" controls muted>
                             <source src="" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
+                        <h3 id="video-title" style="margin: 10px 0; text-align: center;"></h3>
                         <div class="controls">
                             <button id="center-mute-btn">Unmute</button>
                             <input type="range" id="center-volume-slider" min="0" max="1" step="0.1" value="0.5">
@@ -694,7 +695,7 @@
             });
         }
 
-        function loadFloatingVideo(videoSrc) {
+        function loadFloatingVideo(videoSrc, name) {
             isVideoLoading = true;
 
             const wrapper = document.getElementById('centerVideoWrapper');
@@ -709,14 +710,9 @@
             video.currentTime = 0;
             video.src = videoSrc;
             video.load();
-            video.play().catch(err => {
-                if (err.name !== 'AbortError') {
-                    console.error('Play failed:', err);
-                }
-                isVideoLoading = false;
-            }).then(() => {
-                isVideoLoading = false;
-            });
+
+            // Set the title
+            document.getElementById('video-title').textContent = name;
 
             // Set correct mute button text
             updateMuteBtn(video);
@@ -836,7 +832,7 @@
                             if (video.url.includes('twitch.tv') || video.url.includes('kick.com')) {
                                 window.open(video.url, '_blank');
                             } else {
-                                loadFloatingVideo(video.url);
+                                loadFloatingVideo(video.url, name);
                             }
                         };
                         linkCell.appendChild(linkButton);
@@ -925,7 +921,7 @@
                         if (v.url.includes('twitch.tv') || v.url.includes('kick.com')) {
                             window.open(v.url, '_blank');
                         } else {
-                            loadFloatingVideo(v.url);
+                            loadFloatingVideo(v.url, v.name);
                         }
                     };
                     listItem.appendChild(watchButton);
@@ -972,7 +968,7 @@
                                 if (video.url.includes('twitch.tv') || video.url.includes('kick.com')) {
                                     window.open(video.url, '_blank');
                                 } else {
-                                    loadFloatingVideo(video.url);
+                                    loadFloatingVideo(video.url, name);
                                 }
                             }
                         };
