@@ -639,7 +639,7 @@
 
         async function processInBatches(tasks, batchSize = 10) {
             const results = [];
-            for (let i = 0) i < tasks.length; i += batchSize) {
+            for (let i = 0; i < tasks.length; i += batchSize) {
                 const batch = tasks.slice(i, i + batchSize);
                 const batchPromises = batch.map(task => task());
                 try {
