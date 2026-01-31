@@ -48,6 +48,21 @@
             transition: var(--transition);
         }
 
+        .top-banner {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .top-banner h1 {
+            margin: 0;
+            font-size: clamp(1.5rem, 2.5vw, 2rem);
+        }
+
         .online-bubble, .watch-bubble {
             background: var(--color-success);
             color: #fff;
@@ -107,31 +122,13 @@
             color: var(--text-primary);
         }
 
-        .main-wrapper {
-            display: flex;
-            gap: 16px;
-        }
-
-        .user-sidebar {
-            width: 320px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-height: calc(100vh - 32px);
-        }
-
-        .right-section {
-            flex: 1;
-        }
-
         .table-container {
             display: none;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
             width: 100%;
             max-width: 1400px;
-            margin: 0;
+            margin: 0 auto 16px auto;
         }
 
         @media (max-width: 1024px) {
@@ -360,6 +357,24 @@
             min-height: 36px;
         }
 
+        .main-wrapper {
+            display: flex;
+            gap: 16px;
+        }
+
+        .user-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: calc(100vh - 32px);
+        }
+
+        .right-section {
+            flex: 1;
+        }
+
         .bottom-panel {
             margin-top: auto;
             background: var(--bg-secondary);
@@ -473,16 +488,6 @@
                 min-height: 250px;
             }
         }
-
-        .top-banner {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 14px 16px;
-            margin-bottom: 16px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -503,6 +508,34 @@
 
     <div class="top-banner">
         <h1>MyVRLive! Live VRC DJs</h1>
+    </div>
+
+    <div class="table-container">
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Video Link</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="leftTable"></tbody>
+            </table>
+        </div>
+
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Video Link</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="rightTable"></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="main-wrapper">
@@ -550,33 +583,6 @@
         </div>
 
         <div class="right-section">
-            <div class="table-container">
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Video Link</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leftTable"></tbody>
-                    </table>
-                </div>
-
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Video Link</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rightTable"></tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -1100,7 +1106,7 @@
             a.href = url;
             a.download = 'video-links.json';
             a.click();
-            URL.createObjectURL(url);
+            URL.revokeObjectURL(url);
         });
 
         document.getElementById('toggleVideoLinks').addEventListener('click', () => {
