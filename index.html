@@ -547,6 +547,7 @@
                                     <th>Name</th>
                                     <th>Video Link</th>
                                     <th>Status</th>
+                                    <th>Live Duration</th>
                                 </tr>
                             </thead>
                             <tbody id="leftTable"></tbody>
@@ -559,6 +560,7 @@
                                     <th>Name</th>
                                     <th>Video Link</th>
                                     <th>Status</th>
+                                    <th>Live Duration</th>
                                 </tr>
                             </thead>
                             <tbody id="rightTable"></tbody>
@@ -585,7 +587,9 @@
         let nextRefreshAt = Date.now() + AUTO_REFRESH_INTERVAL_MS;
         let lastFullCheck = Date.now();
         let recentWatches = JSON.parse(localStorage.getItem('recentWatches') || '{}');
-        let onlineStatusByUrl = {};
+        let onlineStatusByUrl = JSON.parse(localStorage.getItem('onlineStatusByUrl') || '{}');
+        let lastOnlineTimeByUrl = JSON.parse(localStorage.getItem('lastOnlineTimeByUrl') || '{}');
+        let durationUpdateIntervalId = null;
 
         function isUserUnmuted() {
             return localStorage.getItem('videoUnmuted') === 'true';
@@ -639,8 +643,9 @@
             localStorage.setItem('videoLinks', JSON.stringify(videoLinks));
         }
 
-        function saveRecentWatches() {
-            localStorage.setItem('recentWatches', JSON.stringify(recentWatches));
+        function saveOnlineStatus() {
+            localStorage.setItem('onlineStatusByUrl', JSON.stringify(onlineStatusByUrl));
+            localStorage.setItem('lastOnlineTimeByUrl', JSON.stringify(lastOnlineTimeByUrl));
         }
 
         async function processInBatches(tasks, batchSize = 10) {
@@ -755,21 +760,28 @@
             };
         }
 
+        function updateDurationCells() {
+            document.querySelectorAll('.duration-cell').forEach(cell => {
+                const url = cell.dataset.url;
+                if (lastOnlineTimeByUrl[url]) {
+                    const elapsed = Date.now() - lastOnlineTimeByUrl[url];
+                    const hours = Math.floor(elapsed / 3600000);
+                    const mins = Math.floor((elapsed % 3600000) / 60000);
+                    cell.textContent = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                } else {
+                    cell.textContent = '';
+                }
+            });
+        }
+
         async function populateTables(forceFullCheck = false) {
             if (isPopulating) return;
             isPopulating = true;
 
             try {
-                // Collect current offline URLs and all current URLs before clearing
+                // Collect current URLs
                 const currentUrls = new Set();
                 document.querySelectorAll('.link-button').forEach(btn => currentUrls.add(btn.href));
-
-                const offlineUrls = new Set();
-                document.querySelectorAll('.status.offline').forEach(status => {
-                    const row = status.parentNode;
-                    const link = row.querySelector('.link-button').href;
-                    offlineUrls.add(link);
-                });
 
                 const leftTable = document.getElementById('leftTable');
                 const rightTable = document.getElementById('rightTable');
@@ -804,13 +816,6 @@
                     columns[colIndex].push(...group);
                     currentCount += group.length;
                 }
-
-                onlineStatusByUrl = {};
-                columns.forEach(group => {
-                    group.forEach(video => {
-                        onlineStatusByUrl[video.url] = false;
-                    });
-                });
 
                 const statusTasks = [];
 
@@ -857,23 +862,27 @@
 
                         const statusCell = document.createElement('td');
                         const isNew = !currentUrls.has(video.url);
-                        const wasOffline = offlineUrls.has(video.url);
+                        const wasOffline = onlineStatusByUrl[video.url] === false;
+                        const isOnline = onlineStatusByUrl[video.url] || false;
+
+                        statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
+                        statusCell.textContent = isOnline ? 'Online' : 'Offline';
+                        statusCell.directButton = directButton;
 
                         if (forceFullCheck || isNew || wasOffline) {
                             // Check status for new, recently offline, or full check
                             statusCell.className = 'status checking';
                             statusCell.textContent = 'Checking...';
-                            statusCell.directButton = directButton;
                             statusTasks.push(() => checkVideoStatus(video.url, statusCell, video.url));
-                        } else {
-                            // Assume still online
-                            statusCell.className = 'status online';
-                            statusCell.textContent = 'Online';
-                            statusCell.directButton = directButton;
-                            onlineStatusByUrl[video.url] = true;
                         }
 
                         row.appendChild(statusCell);
+
+                        const durationCell = document.createElement('td');
+                        durationCell.className = 'duration-cell';
+                        durationCell.dataset.url = video.url;
+                        updateDurationCells(); // Initial update
+                        row.appendChild(durationCell);
 
                         currentTable.appendChild(row);
                     });
@@ -1013,9 +1022,17 @@
         function updateStatusCell(isOnline, statusCell, url) {
             statusCell.className = `status ${isOnline ? 'online' : 'offline'}`;
             statusCell.textContent = isOnline ? 'Online' : 'Offline';
+            const prevOnline = onlineStatusByUrl[url];
             onlineStatusByUrl[url] = isOnline;
+            if (isOnline && !prevOnline) {
+                lastOnlineTimeByUrl[url] = Date.now();
+            } else if (!isOnline) {
+                delete lastOnlineTimeByUrl[url];
+            }
+            saveOnlineStatus();
             updateOnlineList();
             updateRecentList();
+            updateDurationCells();
         }
 
         async function checkVideoLink(url) {
@@ -1153,6 +1170,8 @@
             populateTables();
             updateRecentList();
             startAutoRefresh();
+            // Start duration update interval
+            durationUpdateIntervalId = setInterval(updateDurationCells, 60000); // Update every minute
         });
     </script>
     <script src="static/js/floatingVideoPlayer.js" defer></script>
