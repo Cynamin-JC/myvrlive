@@ -94,6 +94,27 @@
             margin-left: auto;
         }
 
+        .clear-btn {
+            background: var(--color-error);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: var(--transition);
+        }
+
+        .clear-btn:hover {
+            background: var(--color-error);
+            transform: scale(1.1);
+        }
+
         h1 {
             text-align: center;
             font-size: clamp(1.5rem, 2.5vw, 2rem);
@@ -487,7 +508,7 @@
             </div>
 
             <div id="recentlyWatched">
-                <h3>Recently Watched</h3>
+                <h3>Recently Watched <button id="clearRecentBtn" class="clear-btn" title="Clear Recently Watched">⟲</button></h3>
                 <ul id="recentList">
                     <li>No recent watches</li>
                 </ul>
@@ -564,6 +585,10 @@
         let nextRefreshAt = Date.now() + AUTO_REFRESH_INTERVAL_MS;
         let lastFullCheck = Date.now();
         let recentWatches = JSON.parse(localStorage.getItem('recentWatches') || '{}');
+        let audioContext = null;
+        let analyser = null;
+        let dataArray = null;
+        let animationId = null;
 
         async function loadVideoLinks() {
             const stored = localStorage.getItem('videoLinks');
@@ -614,7 +639,7 @@
 
         async function processInBatches(tasks, batchSize = 10) {
             const results = [];
-            for (let i = 0; i < tasks.length; i += batchSize) {
+            for (let i = 0) i < tasks.length; i += batchSize) {
                 const batch = tasks.slice(i, i + batchSize);
                 const batchPromises = batch.map(task => task());
                 try {
@@ -713,6 +738,7 @@
                 document.getElementById('close-video-player').addEventListener('click', () => {
                     videoPlayer.remove();
                     isVideoLoading = false;
+                    stopAudioVisualization();
                 });
             }
 
@@ -729,7 +755,46 @@
                     isVideoLoading = false;
                 }).then(() => {
                     isVideoLoading = false;
+                    startAudioVisualization(videoElement);
                 });
+            }
+        }
+
+        function startAudioVisualization(videoElement) {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (!analyser) {
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+            }
+
+            const source = audioContext.createMediaElementSource(videoElement);
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            function animate() {
+                analyser.getByteFrequencyData(dataArray);
+                const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                const intensity = Math.min(average / 128 * 20, 20); // Scale to 0-20px
+                const videoPlayer = document.getElementById('floating-video-player');
+                videoPlayer.style.boxShadow = `0 0 ${intensity}px rgba(66, 133, 244, 0.8)`;
+                animationId = requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        function stopAudioVisualization() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            const videoPlayer = document.getElementById('floating-video-player');
+            if (videoPlayer) {
+                videoPlayer.style.boxShadow = '0px 4px 6px rgba(0, 0, 0, 0.3)';
             }
         }
 
@@ -1096,6 +1161,12 @@
         document.getElementById('modeButton').addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             document.getElementById('modeButton').textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
+        });
+
+        document.getElementById('clearRecentBtn').addEventListener('click', () => {
+            recentWatches = {};
+            saveRecentWatches();
+            updateRecentList();
         });
 
         loadVideoLinks().then(() => {
