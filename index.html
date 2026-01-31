@@ -705,9 +705,14 @@
             });
 
             // Attach controls
-            document.getElementById('center-mute-btn').onclick = () => {
+            document.getElementById('center-mute-btn').onclick = function() {
+                const video = document.getElementById('center-video');
                 video.muted = !video.muted;
-                document.getElementById('center-mute-btn').textContent = video.muted ? 'Unmute' : 'Mute';
+                this.textContent = video.muted ? 'Unmute' : 'Mute';
+                // If unmuting and video is paused, re-play to trigger audio (some browsers need this)
+                if (!video.muted && video.paused) {
+                    video.play().catch(() => {});
+                }
             };
             document.getElementById('center-volume-slider').oninput = () => {
                 video.volume = document.getElementById('center-volume-slider').value;
