@@ -526,6 +526,7 @@
             const stored = localStorage.getItem('videoLinks');
             if (stored) {
                 videoLinks = JSON.parse(stored);
+                deduplicateAndSortVideoLinks();
             } else {
                 await fetchVideoLinks();
             }
@@ -535,11 +536,28 @@
             try {
                 const response = await fetch('video-links.json');
                 videoLinks = await response.json();
+                deduplicateAndSortVideoLinks();
                 saveVideoLinks();
             } catch (error) {
                 console.error('Error fetching video links:', error);
                 videoLinks = [];
             }
+        }
+
+        function deduplicateAndSortVideoLinks() {
+            // Remove duplicates based on name and url
+            const seen = new Set();
+            videoLinks = videoLinks.filter(link => {
+                const key = `${link.name}|${link.url}`;
+                if (seen.has(key)) {
+                    return false;
+                }
+                seen.add(key);
+                return true;
+            });
+
+            // Sort alphabetically by name
+            videoLinks.sort((a, b) => a.name.localeCompare(b.name));
         }
 
         function saveVideoLinks() {
@@ -674,9 +692,34 @@
                 leftTable.innerHTML = '';
                 rightTable.innerHTML = '';
 
-                videoLinks.sort((a, b) => a.name.localeCompare(b.name));
-                const midIndex = Math.ceil(videoLinks.length / 2);
-                const columns = [videoLinks.slice(0, midIndex), videoLinks.slice(midIndex)];
+                // Group by first letter
+                const grouped = {};
+                videoLinks.forEach(link => {
+                    const firstLetter = link.name.charAt(0).toUpperCase();
+                    if (!grouped[firstLetter]) {
+                        grouped[firstLetter] = [];
+                    }
+                    grouped[firstLetter].push(link);
+                });
+
+                // Sort groups by letter
+                const sortedLetters = Object.keys(grouped).sort();
+
+                // Distribute groups into two columns, balancing total items
+                const columns = [[], []];
+                let totalItems = videoLinks.length;
+                let half = Math.ceil(totalItems / 2);
+                let currentCount = 0;
+                let colIndex = 0;
+
+                for (const letter of sortedLetters) {
+                    const group = grouped[letter];
+                    if (colIndex === 0 && currentCount + group.length > half) {
+                        colIndex = 1;
+                    }
+                    columns[colIndex].push(...group);
+                    currentCount += group.length;
+                }
 
                 updateOnlineList();
 
