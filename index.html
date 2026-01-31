@@ -123,7 +123,7 @@
         }
 
         .table-container {
-            display: grid;
+            display: none;
             grid-template-columns: 320px 1fr 1fr;
             gap: 16px;
             width: 100%;
@@ -492,6 +492,18 @@
                 bottom: 12px;
             }
         }
+
+        #floating-video-player.fullscreen-mode {
+            top: 100px;
+            left: 16px;
+            width: calc(100vw - 32px);
+            height: calc(100vh - 116px);
+            transform: none;
+        }
+
+        #floating-video-player.fullscreen-mode video {
+            height: calc(100% - 40px);
+        }
     </style>
 </head>
 <body>
@@ -535,6 +547,7 @@
                         <p>Current Links (for manual update to video-links.json):</p>
                         <textarea id="exportTextarea" readonly></textarea>
                         <button id="exportBtn">Download JSON</button>
+                        <button id="toggleVideoLinks">Video Links</button>
                         <button id="logoutBtn">Logout</button>
                         <p><strong>To update video-links.json:</strong> Copy the JSON above, edit the file in your GitHub repo, paste, and commit.</p>
                     </div>
@@ -642,7 +655,7 @@
                 try {
                     const batchResults = await Promise.race([
                         Promise.all(batchPromises),
-                        new Promise((_, reject) => setTimeout(() => reject(newError('Batch timeout')), 15000))
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Batch timeout')), 15000))
                     ]);
                     results.push(...batchResults);
                 } catch (error) {
@@ -736,6 +749,14 @@
                     videoPlayer.remove();
                     isVideoLoading = false;
                 });
+            }
+
+            // Adjust size based on table visibility
+            const tableContainer = document.querySelector('.table-container');
+            if (tableContainer.style.display === 'none') {
+                videoPlayer.classList.add('fullscreen-mode');
+            } else {
+                videoPlayer.classList.remove('fullscreen-mode');
             }
 
             const videoElement = document.getElementById('floating-video');
@@ -1115,6 +1136,11 @@
             a.download = 'video-links.json';
             a.click();
             URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('toggleVideoLinks').addEventListener('click', () => {
+            const container = document.querySelector('.table-container');
+            container.style.display = container.style.display === 'none' ? 'grid' : 'none';
         });
 
         document.getElementById('toggleAdmin').addEventListener('click', () => {
