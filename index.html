@@ -21,6 +21,7 @@
             --border-radius: 8px;
             --transition: all 0.3s ease;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --audio-hue: 0deg;
         }
 
         body.light-mode {
@@ -300,7 +301,6 @@
 
         .centered-video-player {
             background: var(--bg-secondary);
-            border: 2px solid var(--color-primary);
             border-radius: 8px;
             box-shadow: var(--shadow);
             padding: 18px;
@@ -310,10 +310,25 @@
             margin: 0 auto;
         }
 
-        .centered-video-player video {
+        .video-wrapper {
+            background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+            filter: hue-rotate(var(--audio-hue));
+            padding: 2px;
+            border-radius: 8px;
+            animation: rainbow-shift 3s linear infinite;
+        }
+
+        @keyframes rainbow-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .video-wrapper video {
             width: 100%;
             max-width: 100%;
-            border-radius: 8px;
+            border-radius: 6px;
+            display: block;
         }
 
         .centered-video-player .controls {
@@ -526,10 +541,12 @@
             <div class="centered-content-holder">
                 <div id="centerVideoWrapper">
                     <div id="centerVideoPlayer" class="centered-video-player">
-                        <video id="center-video" controls muted>
-                            <source src="" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                        <div class="video-wrapper">
+                            <video id="center-video" controls autoplay muted>
+                                <source src="" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
                         <h3 id="video-title" style="margin: 10px 0; text-align: center;"></h3>
                         <div class="controls">
                             <button id="center-mute-btn">Unmute</button>
@@ -557,11 +574,11 @@
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Video Link</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rightTable"></tbody>
+                                <th>Video Link</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rightTable"></tbody>
                     </table>
                 </div>
             </div>
@@ -586,6 +603,9 @@
         let lastFullCheck = Date.now();
         let recentWatches = JSON.parse(localStorage.getItem('recentWatches') || '{}');
         let onlineStatusByUrl = {};
+        let audioContext = null;
+        let analyser = null;
+        let animationFrameId = null;
 
         function isUserUnmuted() {
             return localStorage.getItem('videoUnmuted') === 'true';
@@ -711,6 +731,37 @@
             video.src = videoSrc;
             video.load();
 
+            // Set up audio reactivity
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                const source = audioContext.createMediaElementSource(video);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+            }
+
+            function updateAudioReactivity() {
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                analyser.getByteFrequencyData(dataArray);
+                const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+                const hue = (average / 255) * 360;
+                document.documentElement.style.setProperty('--audio-hue', `${hue}deg`);
+                animationFrameId = requestAnimationFrame(updateAudioReactivity);
+            }
+
+            updateAudioReactivity();
+
+            video.play().catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.error('Play failed:', err);
+                }
+                isVideoLoading = false;
+            }).then(() => {
+                isVideoLoading = false;
+            });
+
             // Set the title
             document.getElementById('video-title').textContent = name;
 
@@ -744,6 +795,10 @@
                 wrapper.style.display = 'none';
                 video.pause();
                 video.src = '';
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
             };
         }
 
