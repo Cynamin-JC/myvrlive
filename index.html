@@ -890,7 +890,15 @@
                 updateOnlineList();
                 updateRecentList();
 
-                await processInBatches(statusTasks, 10);
+                // Split tasks into two halves and process in parallel
+                const half = Math.ceil(statusTasks.length / 2);
+                const firstHalf = statusTasks.slice(0, half);
+                const secondHalf = statusTasks.slice(half);
+                await Promise.all([
+                    processInBatches(firstHalf, 5),
+                    processInBatches(secondHalf, 5)
+                ]);
+
                 tryAutoPlayLastStream();
             } finally {
                 isPopulating = false;
