@@ -421,7 +421,8 @@
         #floating-video-player {
             position: fixed;
             bottom: 16px;
-            right: 16px;
+            left: 50%;
+            transform: translateX(-50%);
             width: min(320px, 90vw);
             min-width: 200px;
             min-height: 150px;
@@ -697,12 +698,12 @@
                 videoPlayer = document.createElement('div');
                 videoPlayer.id = 'floating-video-player';
                 videoPlayer.innerHTML = `
-                    <video id="floating-video" width="320" height="180" controls autoplay muted>
+                    <video id="floating-video" width="320" height="180" controls autoplay>
                         <source src="" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
                     <div class="controls">
-                        <button id="mute-btn">Unmute</button>
+                        <button id="mute-btn">Mute</button>
                         <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
                         <button id="fullscreen-btn">Full Screen</button>
                         <button id="close-video-player">Close</button>
@@ -876,7 +877,11 @@
                             recentWatches[name] = (recentWatches[name] || 0) + 1;
                             saveRecentWatches();
                             updateRecentList();
-                            loadFloatingVideo(video.url);
+                            if (video.url.includes('twitch.tv') || video.url.includes('kick.com')) {
+                                window.open(video.url, '_blank');
+                            } else {
+                                loadFloatingVideo(video.url);
+                            }
                         };
                         linkCell.appendChild(linkButton);
 
@@ -954,7 +959,11 @@
                         recentWatches[name] = (recentWatches[name] || 0) + 1;
                         saveRecentWatches();
                         updateRecentList();
-                        loadFloatingVideo(videoLink);
+                        if (videoLink.includes('twitch.tv') || videoLink.includes('kick.com')) {
+                            window.open(videoLink, '_blank');
+                        } else {
+                            loadFloatingVideo(videoLink);
+                        }
                     };
                     listItem.appendChild(watchButton);
 
@@ -1002,7 +1011,11 @@
                                 recentWatches[name] = (recentWatches[name] || 0) + 1;
                                 saveRecentWatches();
                                 updateRecentList();
-                                loadFloatingVideo(video.url);
+                                if (video.url.includes('twitch.tv') || video.url.includes('kick.com')) {
+                                    window.open(video.url, '_blank');
+                                } else {
+                                    loadFloatingVideo(video.url);
+                                }
                             }
                         };
                         listItem.appendChild(watchButton);
