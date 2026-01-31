@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale="1.0">
     <title>MyVRLive! Live VRC DJs</title>
     <style>
         :root {
@@ -891,11 +891,15 @@
                 const batchSplit = Math.ceil(statusTasks.length / 2);
                 const firstHalf = statusTasks.slice(0, batchSplit);
                 const secondHalf = statusTasks.slice(batchSplit);
-                await Promise.all([
-                    processInBatches(firstHalf, 5),
-                    processInBatches(secondHalf, 5)
-                ]);
-
+                try {
+                    await Promise.all([
+                        processInBatches(firstHalf, 5),
+                        processInBatches(secondHalf, 5)
+                    ]);
+                } catch (error) {
+                    console.error('Error in batching:', error);
+                }
+                console.log('Online status mapping:', onlineStatusByUrl);
                 updateOnlineList();
                 updateRecentList();
                 tryAutoPlayLastStream();
@@ -909,6 +913,7 @@
             onlineList.innerHTML = '';
 
             const onlineLinks = videoLinks.filter(v => onlineStatusByUrl[v.url]);
+            console.log('Online Now links:', onlineLinks);
             const onlineCount = onlineLinks.length;
             document.getElementById('onlineCounter').textContent = onlineCount;
 
